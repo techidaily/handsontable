@@ -39,6 +39,8 @@ import { warnUserAboutLanguageRegistration, applyLanguageSetting, normalizeLangu
 import { startObserving as keyStateStartObserving, stopObserving as keyStateStopObserving } from './utils/keyStateObserver';
 import { Selection } from './selection';
 
+import { getDataManager } from './dataManager';
+
 let activeGuid = null;
 
 /**
@@ -79,6 +81,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let dataSource;
   let grid;
   let editorManager;
+
+  const DataManager = getDataManager(instance);
 
   extend(GridSettings.prototype, DefaultSettings.prototype); // create grid settings as a copy of default settings
   extend(GridSettings.prototype, userSettings); // overwrite defaults with user settings
@@ -132,7 +136,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   const recordTranslator = getTranslator(instance);
 
-  dataSource = new DataSource(instance);
+  // dataSource = new DataSource(instance);
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
@@ -185,7 +189,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelection',
       from.row, from.col, to.row, to.col, preventScrolling, selectionLayerLevel);
     this.runHooks('afterSelectionByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), preventScrolling, selectionLayerLevel);
+      from.row, instance.toPhysicalColumn(from.col), to.row, instance.toPhysicalColumn(to.col), preventScrolling, selectionLayerLevel);
 
     const isSelectedByAnyHeader = this.selection.isSelectedByAnyHeader();
     const currentSelectedRange = this.selection.selectedRange.current();
@@ -247,7 +251,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.runHooks('afterSelectionEnd',
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
-      from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+      from.row, instance.toPhysicalColumn(from.col), to.row, instance.toPhysicalColumn(to.col), selectionLayerLevel);
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -859,29 +863,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   }
 
   this.init = function() {
-    dataSource.setData(priv.settings.data);
+    // dataSource.setData(priv.settings.data);
+    // DataManager.updateSourceData(priv.settings.data);
 
-    instance.runHooks('beforeInit');
+    // instance.runHooks('beforeInit');
 
-    if (isMobileBrowser()) {
-      addClass(instance.rootElement, 'mobile');
-    }
+    // if (isMobileBrowser()) {
+    //   addClass(instance.rootElement, 'mobile');
+    // }
 
     this.updateSettings(priv.settings, true);
 
-    this.view = new TableView(this);
-    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
+    // this.view = new TableView(this);
+    // editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
 
-    this.forceFullRender = true; // used when data was changed
+    // this.forceFullRender = true; // used when data was changed
 
-    instance.runHooks('init');
-    this.view.render();
+    // instance.runHooks('init');
+    // this.view.render();
 
-    if (typeof priv.firstRun === 'object') {
-      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
-      priv.firstRun = false;
-    }
-    instance.runHooks('afterInit');
+    // if (typeof priv.firstRun === 'object') {
+    //   instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
+    //   priv.firstRun = false;
+    // }
+    // instance.runHooks('afterInit');
   };
 
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
@@ -964,7 +969,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         changes.splice(i, 1);
       } else {
         const [row, prop, , newValue] = changes[i];
-        const col = datamap.propToCol(prop);
+        const col = instance.toVisualColumn(prop);
         const cellProperties = instance.getCellMeta(row, col);
 
         if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericData(newValue)) {
@@ -1041,7 +1046,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
       if (instance.dataType === 'array' && (!priv.settings.columns || priv.settings.columns.length === 0) && priv.settings.allowInsertColumn) {
-        while (datamap.propToCol(changes[i][1]) > instance.countCols() - 1) {
+        while (instance.toVisualColumn(changes[i][1]) > instance.countCols() - 1) {
           const numberOfCreatedColumns = datamap.createCol(void 0, void 0, source);
 
           if (numberOfCreatedColumns === 0) {
@@ -1056,7 +1061,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      datamap.set(changes[i][0], changes[i][1], changes[i][3]);
+      DataManager.updateCell(changes[i][0], changes[i][1], changes[i][3]);
     }
 
     instance.forceFullRender = true; // used when data was changed
@@ -1181,13 +1186,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         prop = input[i][1];
 
       } else {
-        prop = datamap.colToProp(input[i][1]);
+        prop = instance.toPhysicalColumn(input[i][1]);
       }
 
       changes.push([
         input[i][0],
         prop,
-        dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        DataManager.getRenderable(row, column),
+        // dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
         input[i][2],
       ]);
     }
@@ -1531,11 +1537,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.dataType = 'object';
     }
 
-    if (datamap) {
-      datamap.destroy();
-    }
-    datamap = new DataMap(instance, priv, GridSettings);
-
     if (typeof data === 'object' && data !== null) {
       if (!(data.push && data.splice)) { // check if data is array. Must use duck-type check so Backbone Collections also pass it
         // when data is not an array, attempt to make a single-row array of it
@@ -1577,23 +1578,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     priv.isPopulated = false;
     GridSettings.prototype.data = data;
+    DataManager.updateSourceData(data);
 
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
     }
 
-    datamap.dataSource = data;
-    dataSource.data = data;
-    dataSource.dataType = instance.dataType;
-    dataSource.colToProp = datamap.colToProp.bind(datamap);
-    dataSource.propToCol = datamap.propToCol.bind(datamap);
-
     clearCellSettingCache();
-
-    // Method `countSourceCols` doesn't return number of columns declared by `minCols` property.
-    recordTranslator.getColumnIndexMapper().initToLength(Math.max(this.countSourceCols(), this.countCols()));
-    recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
-
     grid.adjustRowsAndCols();
 
     instance.runHooks('afterLoadData', priv.firstRun);
@@ -1636,10 +1627,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getData = function(row, column, row2, column2) {
     if (isUndefined(row)) {
-      return datamap.getAll();
+      return DataManager.getRenderable();
     }
 
-    return datamap.getRange(new CellCoords(row, column), new CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
+    return DataManager.getRenderable(row, column, row2, column2);
+    // return datamap.getRange(new CellCoords(row, column), new CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
   };
 
   /**
@@ -1740,6 +1732,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         GridSettings.prototype[i] = settings[i];
       }
     }
+    const columnSetting = settings.columns || GridSettings.prototype.columns;
+
+    if (settings.columns !== void 0) {
+      DataManager.createMap(columnSetting);
+    }
 
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
@@ -1747,14 +1744,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (settings.data !== void 0) {
       instance.loadData(settings.data); // data source given as option
-
-    } else if (settings.columns !== void 0) {
-      datamap.createMap();
     }
 
     clen = instance.countCols();
-
-    const columnSetting = settings.columns || GridSettings.prototype.columns;
 
     // Init columns constructors configuration
     if (columnSetting && isFunction(columnSetting)) {
@@ -2107,7 +2099,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row, column) {
-    return datamap.get(row, datamap.colToProp(column));
+    return DataManager.getRenderable(row, column);
+    // return datamap.get(row, datamap.colToProp(column));
   };
 
   /**
@@ -2179,9 +2172,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let data;
 
     if (row === void 0) {
-      data = dataSource.getData();
+      data = DataManager.getSourceData();
     } else {
-      data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2));
+      data = DataManager.getSourceData(row, column, row2, column2);
     }
 
     return data;
@@ -2204,15 +2197,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} An array of arrays.
    */
   this.getSourceDataArray = function(row, column, row2, column2) {
-    let data;
-
     if (row === void 0) {
-      data = dataSource.getData(true);
-    } else {
-      data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2), true);
+      return DataManager.getSourceDataArray();
+      // data = dataSource.getData(true);
     }
 
-    return data;
+    return DataManager.getSourceDataArray(row, column, row2, column2);
+    // data = dataSource.getByRange(new CellCoords(row, column), new CellCoords(row2, column2), true);
   };
 
   /**
@@ -2225,7 +2216,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCol = function(column) {
-    return dataSource.getAtColumn(column);
+    return DataManager.getSourceDataAtColumn(column);
+    // return dataSource.getAtColumn(column);
   };
 
   /**
@@ -2240,7 +2232,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|Object} Single row of data.
    */
   this.getSourceDataAtRow = function(row) {
-    return dataSource.getAtRow(row);
+    // return dataSource.getAtRow(row);
   };
 
   /**
@@ -2254,7 +2246,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
-    return dataSource.getAtCell(row, column);
+    return DataManager.getSourceData(row, column);
   };
 
   /**
@@ -2454,7 +2446,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       physicalColumn = column;
     }
 
-    const prop = datamap.colToProp(column);
+    // const prop = datamap.colToProp(column);
+    const prop = DataManager.getPhysicalColumn(column);
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2965,7 +2958,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.countSourceRows = function() {
     const sourceLength = instance.runHooks('modifySourceLength');
-    return sourceLength || (instance.getSourceData() ? instance.getSourceData().length : 0);
+    return sourceLength || DataManager.countSourceRows();
   };
 
   /**
@@ -2976,17 +2969,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countSourceCols = function() {
-    let len = 0;
-    const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
+    return DataManager.countSourceColumns();
 
-    if (isObject(obj)) {
-      len = deepObjectSize(obj);
+    // let len = 0;
+    // const obj = instance.getSourceData() && instance.getSourceData()[0] ? instance.getSourceData()[0] : [];
 
-    } else {
-      len = obj.length || 0;
-    }
+    // if (isObject(obj)) {
+    //   len = deepObjectSize(obj);
 
-    return len;
+    // } else {
+    //   len = obj.length || 0;
+    // }
+
+    // return len;
   };
 
   /**
@@ -2997,7 +2992,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of rows.
    */
   this.countRows = function() {
-    return datamap.getLength();
+    return DataManager.countRenderableRows();
+    // return datamap.getLength();
   };
 
   /**
@@ -3008,45 +3004,46 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
-    const maxCols = this.getSettings().maxCols;
-    let dataHasLength = false;
-    let dataLen = 0;
+    return DataManager.countRenderableColumns();
+    // const maxCols = this.getSettings().maxCols;
+    // let dataHasLength = false;
+    // let dataLen = 0;
 
-    if (instance.dataType === 'array') {
-      dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
-    }
+    // if (instance.dataType === 'array') {
+    //   dataHasLength = priv.settings.data && priv.settings.data[0] && priv.settings.data[0].length;
+    // }
 
-    if (dataHasLength) {
-      dataLen = priv.settings.data[0].length;
-    }
+    // if (dataHasLength) {
+    //   dataLen = priv.settings.data[0].length;
+    // }
 
-    if (priv.settings.columns) {
-      const columnsIsFunction = isFunction(priv.settings.columns);
+    // if (priv.settings.columns) {
+    //   const columnsIsFunction = isFunction(priv.settings.columns);
 
-      if (columnsIsFunction) {
-        if (instance.dataType === 'array') {
-          let columnLen = 0;
+    //   if (columnsIsFunction) {
+    //     if (instance.dataType === 'array') {
+    //       let columnLen = 0;
 
-          for (let i = 0; i < dataLen; i++) {
-            if (priv.settings.columns(i)) {
-              columnLen += 1;
-            }
-          }
+    //       for (let i = 0; i < dataLen; i++) {
+    //         if (priv.settings.columns(i)) {
+    //           columnLen += 1;
+    //         }
+    //       }
 
-          dataLen = columnLen;
-        } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-          dataLen = datamap.colToPropCache.length;
-        }
+    //       dataLen = columnLen;
+    //     } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+    //       dataLen = datamap.colToPropCache.length;
+    //     }
 
-      } else {
-        dataLen = priv.settings.columns.length;
-      }
+    //   } else {
+    //     dataLen = priv.settings.columns.length;
+    //   }
 
-    } else if (instance.dataType === 'object' || instance.dataType === 'function') {
-      dataLen = datamap.colToPropCache.length;
-    }
+    // } else if (instance.dataType === 'object' || instance.dataType === 'function') {
+    //   dataLen = datamap.colToPropCache.length;
+    // }
 
-    return Math.min(maxCols, dataLen);
+    // return Math.min(maxCols, dataLen);
   };
 
   /**

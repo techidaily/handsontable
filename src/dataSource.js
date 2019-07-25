@@ -27,9 +27,6 @@ class DataSource {
      * @default 'array'
      */
     this.dataType = 'array';
-
-    this.colToProp = () => {};
-    this.propToCol = () => {};
   }
 
   /**
@@ -103,7 +100,7 @@ class DataSource {
    * Returns a single value from the data.
    *
    * @param {Number} row Physical row index.
-   * @param {Number} column Visual column index.
+   * @param {Number|String} column Physical column index.
    * @returns {*}
    */
   getAtCell(row, column) {
@@ -114,16 +111,14 @@ class DataSource {
     const dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
 
     if (dataRow) {
-      const prop = this.colToProp(column);
+      if (typeof column === 'string') {
+        result = getProperty(dataRow, column);
 
-      if (typeof prop === 'string') {
-        result = getProperty(dataRow, prop);
-
-      } else if (typeof prop === 'function') {
-        result = prop(this.data.slice(row, row + 1)[0]);
+      } else if (typeof column === 'function') {
+        result = column(this.data.slice(row, row + 1)[0]);
 
       } else {
-        result = dataRow[prop];
+        result = dataRow[column];
       }
     }
 
@@ -157,12 +152,10 @@ class DataSource {
         newRow = toArray ? [] : {};
 
         rangeEach(startCol, endCol, (column) => {
-          const prop = this.colToProp(column);
-
           if (toArray) {
-            newRow.push(row[prop]);
+            newRow.push(row[column]);
           } else {
-            newRow[prop] = row[prop];
+            newRow[column] = row[column];
           }
         });
       }

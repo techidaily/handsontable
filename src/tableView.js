@@ -417,8 +417,8 @@ class TableView {
       rowHeight: this.instance.getRowHeight,
       cellRenderer: (row, col, TD) => {
         const cellProperties = this.instance.getCellMeta(row, col);
-        const prop = this.instance.colToProp(col);
-        let value = this.instance.getDataAtRowProp(row, prop);
+        const prop = cellProperties.prop; // this.instance.colToProp(col);
+        let value = this.instance.getDataAtCell(row, col);
 
         if (this.instance.hasHook('beforeValueRender')) {
           value = this.instance.runHooks('beforeValueRender', value, cellProperties);

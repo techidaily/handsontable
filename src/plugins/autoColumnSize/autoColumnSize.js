@@ -109,7 +109,7 @@ class AutoColumnSize extends BasePlugin {
         let labelText = '';
 
         if (labelValue) {
-          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.colToProp(column), cellValue) : labelValue;
+          labelText = typeof labelValue === 'function' ? labelValue(row, column, this.hot.toPhysicalColumn(column), cellValue) : labelValue;
 
         } else if (labelProperty) {
           const labelData = this.hot.getDataAtRowProp(row, labelProperty);
@@ -493,7 +493,7 @@ class AutoColumnSize extends BasePlugin {
    * @param {Array} changes
    */
   onBeforeChange(changes) {
-    const changedColumns = arrayMap(changes, ([, column]) => this.hot.propToCol(column));
+    const changedColumns = arrayMap(changes, ([, column]) => this.hot.toPhysicalColumn(column));
 
     this.clearCache(changedColumns);
   }
