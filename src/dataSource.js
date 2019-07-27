@@ -1,6 +1,9 @@
-import { getProperty } from './helpers/object';
-import { arrayEach } from './helpers/array';
+import { defineGetter, getProperty, deepObjectSize, isObject, duckSchema } from './helpers/object';
+import { arrayEach, isArray } from './helpers/array';
 import { rangeEach } from './helpers/number';
+import { getTranslator, ValueMap } from './translations';
+
+const DATA_SOURCE_MAP_NAME = 'DataSource';
 
 /**
  * @class DataSource
@@ -13,7 +16,18 @@ class DataSource {
      *
      * @type {Handsontable}
      */
-    this.hot = hotInstance;
+    defineGetter(this, 'hot', hotInstance, {
+      writable: false
+    });
+
+    defineGetter(this, 'rowIndexMapper', getTranslator(hotInstance).getRowIndexMapper(), {
+      writable: false
+    });
+
+    defineGetter(this, 'columnIndexMapper', getTranslator(hotInstance).getColumnIndexMapper(), {
+      writable: false
+    });
+
     /**
      * Data source
      *
@@ -24,9 +38,100 @@ class DataSource {
      * Type of data source.
      *
      * @type {String}
-     * @default 'array'
+     * @default 'arrays'
      */
-    this.dataType = 'array';
+    this.dataType = DataSource.ARRAY_OF_ARRAYS;
+
+    /**
+     * @type {ValueMap}
+     */
+    this.dataSchemaMap = this.columnIndexMapper.registerMap(DATA_SOURCE_MAP_NAME, new ValueMap());
+
+  }
+
+  /**
+   * @returns {String}
+   */
+  static get ARRAY_OF_ARRAYS() {
+    return 'arrays';
+  }
+
+  /**
+   * @returns {String}
+   */
+  static get ARRAY_OF_OBJECTS() {
+    return 'objects';
+  }
+
+  /**
+   * Set new data source.
+   *
+   * @param data {Array}
+   */
+  setData(data) {
+    this.data = data;
+
+    const firstRow = this.data[0];
+    let type = DataSource.ARRAY_OF_ARRAYS;
+
+    if (firstRow) {
+      if (isObject(firstRow)) {
+        type = DataSource.ARRAY_OF_OBJECTS;
+
+      } else if (!isArray(firstRow)) {
+        type = 'unknown';
+      }
+    }
+
+    this.setDataType(type);
+
+    this.rowIndexMapper.initToLength(this.countRows());
+    this.columnIndexMapper.initToLength(this.countColumns());
+
+    this.updateDataSchema();
+  }
+
+  /**
+   * Sets proper data type for data validation.
+   *
+   * @param {String} type
+   */
+  setDataType(type) {
+    if (!this.isSupportedDataType(type)) {
+      throw new Error('Handsontable: Unsupported DataType');
+    }
+
+    this.dataType = type;
+  }
+
+  updateDataSchema() {
+    switch (this.dataType) {
+      case DataSource.ARRAY_OF_OBJECTS: {
+        const keys = duckSchema(this.data[0]);
+
+        Object.keys(keys).forEach((property, index) => this.dataSchemaMap.setValueAtIndex(index, property));
+
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+
+  getDataSchema() {
+    return this.dataSchemaMap.getValues();
+  }
+
+  /**
+   *
+   * @param {String} type
+   */
+  isSupportedDataType(type) {
+    return [
+      DataSource.ARRAY_OF_ARRAYS,
+      DataSource.ARRAY_OF_OBJECTS,
+    ].includes(type);
   }
 
   /**
@@ -51,33 +156,24 @@ class DataSource {
   }
 
   /**
-   * Set new data source.
-   *
-   * @param data {Array}
-   */
-  setData(data) {
-    this.data = data;
-  }
-
-  /**
    * Returns array of column values from the data source. `column` is the index of the row in the data source.
    *
-   * @param {Number} column Visual column index.
+   * @param {Number|String} column Physical column index or property name.
    * @returns {Array}
    */
   getAtColumn(column) {
     const result = [];
 
     arrayEach(this.data, (row) => {
-      const property = this.colToProp(column);
+      // const property = this.colToProp(column);
       let value;
 
       if (typeof property === 'string') {
-        value = getProperty(row, property);
+        value = getProperty(row, column);
       } else if (typeof property === 'function') {
-        value = property(row);
+        value = column(row);
       } else {
-        value = row[property];
+        value = row[column];
       }
 
       result.push(value);
@@ -181,15 +277,25 @@ class DataSource {
    * @returns {Number}
    */
   countColumns() {
+    const firstRow = this.data[0];
+
+    if (!firstRow) {
+      return 0;
+    }
+
     let result = 0;
 
-    if (Array.isArray(this.data)) {
-      if (this.dataType === 'array') {
-        result = this.data[0].length;
+    switch (this.dataType) {
+      case DataSource.ARRAY_OF_ARRAYS:
+        result = firstRow.length;
+        break;
 
-      } else if (this.dataType === 'object') {
-        result = Object.keys(this.data[0]).length;
-      }
+      case DataSource.ARRAY_OF_OBJECTS:
+        result = deepObjectSize(firstRow);
+        break;
+
+      default:
+        break;
     }
 
     return result;

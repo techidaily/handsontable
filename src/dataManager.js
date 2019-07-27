@@ -65,8 +65,8 @@ class DataManager {
   updateSourceData(dataset) {
     this.dataSource.setData(dataset);
 
-    this.recordTranslator.getColumnIndexMapper().initToLength(this.countSourceColumns());
-    this.recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
+    // this.recordTranslator.getColumnIndexMapper().initToLength(this.countSourceColumns());
+    // this.recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
   }
 
   update() {
@@ -84,10 +84,10 @@ class DataManager {
   removeRow() {}
 
   countSourceColumns() {
-    return 0;
+    return this.dataSource.countColumns();
   }
   countSourceRows() {
-    return 0;
+    return this.dataSource.countRows();
   }
 
   countTransformedColumns() {}
@@ -96,6 +96,7 @@ class DataManager {
   countRenderableColumns() {
     return this.dataSource.countColumns();
   }
+
   countRenderableRows() {
     return this.dataSource.countRows();
   }
@@ -106,16 +107,7 @@ class DataManager {
    * @returns {Object}
    */
   getSchema() {
-    const schema = this.instance.getSettings().dataSchema;
-
-    if (schema) {
-      if (typeof schema === 'function') {
-        return schema();
-      }
-      return schema;
-    }
-
-    return this.duckSchema;
+    return this.dataSource.getDataSchema();
   }
 
   getRenderable(startRow, startColumn, endRow, endColumn) {
@@ -137,6 +129,15 @@ class DataManager {
       { row: startRow, col: startColumn },
       { row: endRow, col: endColumn },
     );
+  }
+
+  /**
+   * Returns
+   *
+   * @param {Number|String} column Visual column index.
+   */
+  getRenderableAtColumn(column) {
+    return this.dataSource.getAtColumn(column);
   }
 
   getSourceData(startRow, startColumn, endRow, endColumn) {

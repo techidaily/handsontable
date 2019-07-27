@@ -4,15 +4,13 @@ import { isFunction } from './helpers/function';
 import { warn } from './helpers/console';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser } from './helpers/browser';
-import DataMap from './dataMap';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
 import {
   deepClone,
   duckSchema,
-  extend, isObject,
+  extend,
   isObjectEqual,
-  deepObjectSize,
   hasOwnProperty,
   createObjectPropListener,
   objectEach
@@ -23,9 +21,8 @@ import { getPlugin } from './plugins';
 import { getRenderer } from './renderers';
 import { getValidator } from './validators';
 import { randomString } from './helpers/string';
-import { rangeEach, rangeEachReverse } from './helpers/number';
+import { rangeEach, rangeEachReverse, isNumeric } from './helpers/number';
 import TableView from './tableView';
-import DataSource from './dataSource';
 import { translateRowsToColumns, cellMethodLookupFactory, spreadsheetColumnLabel } from './helpers/data';
 import { getTranslator } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
@@ -2130,7 +2127,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return [].concat(...datamap.getRange(new CellCoords(0, column), new CellCoords(priv.settings.data.length - 1, column), datamap.DESTINATION_RENDERER));
+    return DataManager.getRenderableAtColumn(column);
   };
 
   /**
@@ -2142,14 +2139,12 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {String|Number} prop Property name or physical column index.
    * @returns {Array} Array of cell values.
    */
-  // TODO: Getting data from `datamap` should work on visual indexes.
   this.getDataAtProp = function(prop) {
-    const range = datamap.getRange(
-      new CellCoords(0, datamap.propToCol(prop)),
-      new CellCoords(priv.settings.data.length - 1, datamap.propToCol(prop)),
-      datamap.DESTINATION_RENDERER);
+    if (isNumeric(prop)) {
+      return this.getDataAtCol(prop);
+    }
 
-    return [].concat(...range);
+    return DataManager.getRenderableAtProperty(prop);
   };
 
   /**
@@ -2232,7 +2227,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array|Object} Single row of data.
    */
   this.getSourceDataAtRow = function(row) {
-    // return dataSource.getAtRow(row);
+    return DataManager.getSourceDataAtRow(row);
   };
 
   /**
@@ -2244,7 +2239,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {Number} column Visual column index.
    * @returns {*} Cell data.
    */
-  // TODO: Getting data from `sourceData` should work always on physical indexes.
   this.getSourceDataAtCell = function(row, column) {
     return DataManager.getSourceData(row, column);
   };
@@ -2261,9 +2255,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of row's cell data.
    */
   this.getDataAtRow = function(row) {
-    const data = datamap.getRange(new CellCoords(row, 0), new CellCoords(row, this.countCols() - 1), datamap.DESTINATION_RENDERER);
-
-    return data[0] || [];
+    return DataManager.getDataAtRow(row);
   };
 
   /**

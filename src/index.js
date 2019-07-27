@@ -34,6 +34,8 @@ import { rootInstanceSymbol } from './utils/rootInstance';
 import { getTranslatedPhrase } from './i18n';
 import * as constants from './i18n/constants';
 
+import { getDataManager } from './dataManager';
+
 import { registerLanguageDictionary, getLanguagesDictionaries, getLanguageDictionary } from './i18n/dictionariesManager';
 
 function Handsontable(rootElement, userSettings) {
@@ -174,5 +176,7 @@ Handsontable.languages.registerLanguageDictionary = registerLanguageDictionary;
 
 // Alias to `getTranslatedPhrase` function, for more information check it API.
 Handsontable.languages.getTranslatedPhrase = (...args) => getTranslatedPhrase(...args);
+
+Handsontable.getDataManager = getDataManager;
 
 export default Handsontable;
