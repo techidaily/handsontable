@@ -1,6 +1,6 @@
 import { defineGetter, getProperty, deepObjectSize, isObject, duckSchema } from './helpers/object';
-import { arrayEach, isArray } from './helpers/array';
-import { rangeEach } from './helpers/number';
+import { arrayEach } from './helpers/array';
+import { rangeEach, isNumeric } from './helpers/number';
 import { getTranslator, ValueMap } from './translations';
 
 const DATA_SOURCE_MAP_NAME = 'DataSource';
@@ -78,7 +78,7 @@ class DataSource {
       if (isObject(firstRow)) {
         type = DataSource.ARRAY_OF_OBJECTS;
 
-      } else if (!isArray(firstRow)) {
+      } else if (!Array.isArray(firstRow)) {
         type = 'unknown';
       }
     }
@@ -165,15 +165,16 @@ class DataSource {
     const result = [];
 
     arrayEach(this.data, (row) => {
-      // const property = this.colToProp(column);
+      const property = this.dataSchemaMap.getValueAtIndex(column);
       let value;
 
       if (typeof property === 'string') {
-        value = getProperty(row, column);
+        value = getProperty(row, property);
+
       } else if (typeof property === 'function') {
-        value = column(row);
+        value = property(row);
       } else {
-        value = row[column];
+        value = row[property];
       }
 
       result.push(value);
@@ -207,14 +208,16 @@ class DataSource {
     const dataRow = isNaN(modifyRowData) ? modifyRowData : this.data[row];
 
     if (dataRow) {
-      if (typeof column === 'string') {
-        result = getProperty(dataRow, column);
+      const property = isNumeric(column) ? this.dataSchemaMap.getValueAtIndex(column) : column;
 
-      } else if (typeof column === 'function') {
-        result = column(this.data.slice(row, row + 1)[0]);
+      if (typeof property === 'string') {
+        result = getProperty(dataRow, property);
+
+      } else if (typeof property === 'function') {
+        result = property(this.data.slice(row, row + 1)[0]);
 
       } else {
-        result = dataRow[column];
+        result = dataRow[property];
       }
     }
 
@@ -241,17 +244,19 @@ class DataSource {
       const row = this.getAtRow(currentRow);
       let newRow;
 
-      if (this.dataType === 'array') {
+      if (this.dataType === DataSource.ARRAY_OF_ARRAYS) {
         newRow = row.slice(startCol, endCol + 1);
 
-      } else if (this.dataType === 'object') {
+      } else if (this.dataType === DataSource.ARRAY_OF_OBJECTS) {
         newRow = toArray ? [] : {};
 
         rangeEach(startCol, endCol, (column) => {
+          const property = this.dataSchemaMap.getValueAtIndex(column);
+
           if (toArray) {
-            newRow.push(row[column]);
+            newRow.push(row[property]);
           } else {
-            newRow[column] = row[column];
+            newRow[column] = row[property];
           }
         });
       }

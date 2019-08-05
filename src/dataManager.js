@@ -1,6 +1,8 @@
 import { isUndefined } from './helpers/mixed';
 import {
+  createObjectPropListener,
   deepObjectSize,
+  hasOwnProperty,
   isObject,
 } from './helpers/object';
 import Core from './core';
@@ -18,7 +20,7 @@ class DataManager {
   /**
    * Generates cache for property to and from column addressation.
    */
-  createMap() {
+  setRowModel() {
     const schema = this.getSchema();
     let i;
 
@@ -62,45 +64,6 @@ class DataManager {
     }
   }
 
-  updateSourceData(dataset) {
-    this.dataSource.setData(dataset);
-
-    // this.recordTranslator.getColumnIndexMapper().initToLength(this.countSourceColumns());
-    // this.recordTranslator.getRowIndexMapper().initToLength(this.countSourceRows());
-  }
-
-  update() {
-
-  }
-
-  updateCell() {
-
-  }
-
-  insertColumn() {}
-  insertRow() {}
-
-  removeColumn() {}
-  removeRow() {}
-
-  countSourceColumns() {
-    return this.dataSource.countColumns();
-  }
-  countSourceRows() {
-    return this.dataSource.countRows();
-  }
-
-  countTransformedColumns() {}
-  countTransformedRows() {}
-
-  countRenderableColumns() {
-    return this.dataSource.countColumns();
-  }
-
-  countRenderableRows() {
-    return this.dataSource.countRows();
-  }
-
   /**
    * Returns data's schema.
    *
@@ -110,91 +73,233 @@ class DataManager {
     return this.dataSource.getDataSchema();
   }
 
-  getRenderable(startRow, startColumn, endRow, endColumn) {
-    if (isUndefined(startRow)) {
-      return this.dataSource.getData();
+  setSchema() {
+
+  }
+
+  setSourceData(dataset) {
+    this.dataSource.setData(dataset);
+  }
+
+  /**
+   * Sets value in
+   *
+   * @param {Number} row Visual row index.
+   * @param {Number} column Visual column index.
+   * @param {*} value New value to set in cell.
+   */
+  set(row, column, value) {
+    const physicalRow = this.toPhysicalRow(row);
+    const physicalColumn = this.toPhysicalColumn(column);
+
+    this.setSourceCell(physicalRow, physicalColumn, value);
+  }
+
+  /**
+   *
+   * @param {Number} row
+   * @param {Number|String} column
+   * @param {*} value
+   * @param {*} source
+   */
+  setSourceCell(row, column, value) {
+    let newValue = value;
+    let dataRow = this.dataSource.getAtRow(row);
+    // TODO: To remove, use 'modifyData' hook instead (see below)
+    const modifiedRowData = this.hot.runHooks('modifyRowData', row);
+
+    dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
+
+    if (this.hot.hasHook('modifyData')) {
+      const valueHolder = createObjectPropListener(newValue);
+
+      this.hot.runHooks('modifyData', row, this.toVisualColumn(column), valueHolder, 'set');
+
+      if (valueHolder.isTouched()) {
+        newValue = valueHolder.value;
+      }
     }
 
-    startRow = this.getPhysicalRow(startRow);
-    startColumn = this.getPhysicalColumn(startColumn);
+    // try to set value under property `prop` (includes dot)
+
+    const property = this.dataSource.dataSchemaMap.getValueAtIndex(column);
+    if (dataRow && dataRow.hasOwnProperty && hasOwnProperty(dataRow, property)) {
+      dataRow[property] = newValue;
+
+    } else if (typeof property === 'string' && property.indexOf('.') > -1) {
+      const sliced = property.split('.');
+      let out = dataRow;
+      let i = 0;
+      let ilen;
+
+      for (i = 0, ilen = sliced.length - 1; i < ilen; i++) {
+        if (typeof out[sliced[i]] === 'undefined') {
+          out[sliced[i]] = {};
+        }
+        out = out[sliced[i]];
+      }
+      out[sliced[i]] = newValue;
+
+    } else if (typeof property === 'function') {
+      /* see the `function` handler in `get` */
+      property(this.dataSource.slice(row, row + 1)[0], newValue);
+
+    } else {
+      dataRow[property] = newValue;
+    }
+  }
+
+  countSourceColumns() {
+    return this.recordTranslator.getColumnIndexMapper().getNumberOfIndexes();
+  }
+
+  countSourceRows() {
+    return this.recordTranslator.getRowIndexMapper().getNumberOfIndexes();
+  }
+
+  countTransformedColumns() {
+    return this.recordTranslator.getColumnIndexMapper().getNotSkippedIndexesLength();
+  }
+
+  countTransformedRows() {
+    return this.recordTranslator.getRowIndexMapper().getNotSkippedIndexesLength();
+  }
+
+  countColumns() {
+    return this.recordTranslator.getColumnIndexMapper().getNotSkippedVisuallyIndexesLength();
+  }
+
+  countRows() {
+    return this.recordTranslator.getRowIndexMapper().getNotSkippedVisuallyIndexesLength();
+  }
+
+  isColumnInsertingAllowed() {
+
+  }
+
+  isColumnRemovingAllowed() {
+
+  }
+
+  /**
+   * @todo
+   *
+   * @param {Number} column Visual column index.
+   * @returns {Number|String}
+   */
+  toPhysicalColumn(column) {
+    return this.recordTranslator.getColumnIndexMapper().getPhysicalIndex(column);
+  }
+  /**
+   * @todo
+   *
+   * @param {Number} row Visual row index.
+   * @returns {Number|String}
+   */
+  toPhysicalRow(row) {
+    return this.recordTranslator.getRowIndexMapper().getPhysicalIndex(row);
+  }
+
+  /**
+   * @todo
+   *
+   * @param {Number|String} column Physical column index or property.
+   * @returns {Number}
+   */
+  toVisualColumn(column) {
+    return this.recordTranslator.getColumnIndexMapper().getVisualIndex(column);
+  }
+
+  /**
+   * @todo
+   *
+   * @param {Number} row Physical row index.
+   * @returns {Number}
+   */
+  toVisualRow(row) {
+    return this.recordTranslator.getRowIndexMapper().getVisualIndex(row);
+  }
+
+  insertColumn() {
+
+  }
+
+  insertRow() {
+
+  }
+
+  removeColumn() {
+
+  }
+
+  removeRow() {
+
+  }
+
+  spliceCol() {
+
+  }
+
+  spliceRow() {
+
+  }
+
+  getData(startRow, startColumn, endRow, endColumn) {
+    if (isUndefined(startRow)) {
+      return this.dataSource.getData(true);
+    }
+
+    startRow = this.toPhysicalRow(startRow);
+    startColumn = this.toPhysicalColumn(startColumn);
 
     if (endRow === void 0) {
       return this.dataSource.getAtCell(startRow, startColumn);
     }
 
-    endRow = this.getPhysicalRow(endRow);
-    endColumn = this.getPhysicalColumn(endColumn);
+    endRow = this.toPhysicalRow(endRow);
+    endColumn = this.toPhysicalColumn(endColumn);
 
     return this.dataSource.getByRange(
       { row: startRow, col: startColumn },
       { row: endRow, col: endColumn },
+      true
     );
   }
 
   /**
-   * Returns
+   * @todo
    *
    * @param {Number|String} column Visual column index.
    */
-  getRenderableAtColumn(column) {
-    return this.dataSource.getAtColumn(column);
+  getDataAtColumn(column) {
+    const physicalColumn = this.toPhysicalColumn(column);
+
+    return this.dataSource.getAtColumn(physicalColumn);
   }
 
+  /**
+   * @todo
+   *
+   * @param {Number} startRow
+   * @param {*} startColumn
+   * @param {*} endRow
+   * @param {*} endColumn
+   */
   getSourceData(startRow, startColumn, endRow, endColumn) {
-    startRow = this.getPhysicalRow(startRow);
-    startColumn = this.getPhysicalColumn(startColumn);
+    startRow = this.toPhysicalRow(startRow);
+    startColumn = this.toPhysicalColumn(startColumn);
 
     if (endRow === void 0) {
       return this.dataSource.getAtCell(startRow, startColumn);
     }
 
-    endRow = this.getPhysicalRow(endRow);
-    endColumn = this.getPhysicalColumn(endColumn);
+    endRow = this.toPhysicalRow(endRow);
+    endColumn = this.toPhysicalColumn(endColumn);
 
     return this.dataSource.getByRange(
       { row: startRow, col: startColumn },
       { row: endRow, col: endColumn },
     );
-  }
-
-  /**
-   * @TODO description
-   *
-   * @param {Number} visualIndex
-   * @returns {Number}
-   */
-  getPhysicalRow(visualIndex) {
-    return visualIndex;
-  }
-
-  /**
-   * @TODO description
-   *
-   * @param {Number} visualIndex
-   * @returns {Number|String}
-   */
-  getPhysicalColumn(visualIndex) {
-    return visualIndex;
-  }
-
-  /**
-   * @TODO description
-   *
-   * @param {Number} physicalIndex
-   * @returns {Number}
-   */
-  getVisualRow(physicalIndex) {
-    return physicalIndex;
-  }
-
-  /**
-   * @TODO description
-   *
-   * @param {Number} physicalIndex
-   * @returns {Number}
-   */
-  getVisualColumn(physicalIndex) {
-    return physicalIndex;
   }
 }
 

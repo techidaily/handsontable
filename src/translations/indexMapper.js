@@ -120,7 +120,7 @@ class IndexMapper {
   }
 
   /**
-   * Get all indexes NOT skipped in the process of rendering.
+   * Get all indexes NOT skipped in the process of transforming.
    *
    * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
    * @returns {Array}
@@ -134,11 +134,34 @@ class IndexMapper {
   }
 
   /**
-   * Get length of all indexes NOT skipped in the process of rendering.
+   * Get length of all indexes NOT skipped in the process of transforming.
    *
    * @returns {Number}
    */
   getNotSkippedIndexesLength() {
+    return this.getNotSkippedIndexes().length;
+  }
+
+  /**
+   * Get all indexes NOT skipped visually in the process of rendering.
+   *
+   * @param {Boolean} [readFromCache=true] Determine if read indexes from cache.
+   * @returns {Array}
+   */
+  getNotSkippedVisuallyIndexes(readFromCache = true) {
+    if (readFromCache === true) {
+      return this.notSkippedIndexesCache;
+    }
+
+    return arrayFilter(this.getIndexesSequence(), index => this.isSkipped(index) === false);
+  }
+
+  /**
+   * Get length of all indexes NOT skipped visually in the process of rendering.
+   *
+   * @returns {Number}
+   */
+  getNotSkippedVisuallyIndexesLength() {
     return this.getNotSkippedIndexes().length;
   }
 

@@ -863,27 +863,27 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     // dataSource.setData(priv.settings.data);
     // DataManager.updateSourceData(priv.settings.data);
 
-    // instance.runHooks('beforeInit');
+    instance.runHooks('beforeInit');
 
-    // if (isMobileBrowser()) {
-    //   addClass(instance.rootElement, 'mobile');
-    // }
+    if (isMobileBrowser()) {
+      addClass(instance.rootElement, 'mobile');
+    }
 
     this.updateSettings(priv.settings, true);
 
-    // this.view = new TableView(this);
-    // editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
+    this.view = new TableView(this);
+    editorManager = EditorManager.getInstance(instance, priv, selection, datamap);
 
-    // this.forceFullRender = true; // used when data was changed
+    this.forceFullRender = true; // used when data was changed
 
-    // instance.runHooks('init');
-    // this.view.render();
+    instance.runHooks('init');
+    this.view.render();
 
-    // if (typeof priv.firstRun === 'object') {
-    //   instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
-    //   priv.firstRun = false;
-    // }
-    // instance.runHooks('afterInit');
+    if (typeof priv.firstRun === 'object') {
+      instance.runHooks('afterChange', priv.firstRun[0], priv.firstRun[1]);
+      priv.firstRun = false;
+    }
+    instance.runHooks('afterInit');
   };
 
   function ValidatorsQueue() { // moved this one level up so it can be used in any function here. Probably this should be moved to a separate file
@@ -1058,7 +1058,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         continue;
       }
 
-      DataManager.updateCell(changes[i][0], changes[i][1], changes[i][3]);
+      DataManager.set(changes[i][0], changes[i][1], changes[i][3]);
     }
 
     instance.forceFullRender = true; // used when data was changed
@@ -1189,8 +1189,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       changes.push([
         input[i][0],
         prop,
-        DataManager.getRenderable(row, column),
-        // dataSource.getAtCell(recordTranslator.toPhysicalRow(input[i][0]), input[i][1]),
+        DataManager.getData(input[i][0], input[i][1]),
         input[i][2],
       ]);
     }
@@ -1575,7 +1574,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     priv.isPopulated = false;
     GridSettings.prototype.data = data;
-    DataManager.updateSourceData(data);
+    DataManager.setSourceData(data);
 
     if (Array.isArray(data[0])) {
       instance.dataType = 'array';
@@ -1624,10 +1623,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.getData = function(row, column, row2, column2) {
     if (isUndefined(row)) {
-      return DataManager.getRenderable();
+      return DataManager.getData();
     }
 
-    return DataManager.getRenderable(row, column, row2, column2);
+    return DataManager.getData(row, column, row2, column2);
     // return datamap.getRange(new CellCoords(row, column), new CellCoords(row2, column2), datamap.DESTINATION_RENDERER);
   };
 
@@ -1730,10 +1729,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
     }
     const columnSetting = settings.columns || GridSettings.prototype.columns;
-
-    if (settings.columns !== void 0) {
-      DataManager.createMap(columnSetting);
-    }
+    columnsAsFunc = columnSetting && isFunction(columnSetting);
 
     // Load data or create data map
     if (settings.data === void 0 && priv.settings.data === void 0) {
@@ -1746,9 +1742,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     clen = instance.countCols();
 
     // Init columns constructors configuration
-    if (columnSetting && isFunction(columnSetting)) {
+    if (columnsAsFunc) {
       clen = instance.countSourceCols();
-      columnsAsFunc = true;
+
+    } else {
+      DataManager.setSchema(columnSetting);
     }
 
     // Clear cellSettings cache
@@ -1972,6 +1970,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * @param {Number} Visual index
+   */
+  this.insertRow = function(index, rows, source) {
+    DataManager.insertRow(index, rows, source);
+  };
+
+  /**
    * Returns a TD element for the given `row` and `column` arguments, if it is rendered on screen.
    * Returns `null` if the TD is not rendered on screen (probably because that part of the table is not visible).
    *
@@ -2096,8 +2101,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {*} Data at cell.
    */
   this.getDataAtCell = function(row, column) {
-    return DataManager.getRenderable(row, column);
-    // return datamap.get(row, datamap.colToProp(column));
+    return DataManager.getData(row, column);
   };
 
   /**
@@ -2127,7 +2131,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Array} Array of cell values.
    */
   this.getDataAtCol = function(column) {
-    return DataManager.getRenderableAtColumn(column);
+    return DataManager.getDataAtColumn(column);
   };
 
   /**
@@ -2144,7 +2148,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       return this.getDataAtCol(prop);
     }
 
-    return DataManager.getRenderableAtProperty(prop);
+    return DataManager.getAtProperty(prop);
   };
 
   /**
@@ -2439,7 +2443,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     }
 
     // const prop = datamap.colToProp(column);
-    const prop = DataManager.getPhysicalColumn(column);
+    const prop = DataManager.toPhysicalColumn(column);
 
     if (!priv.columnSettings[physicalColumn]) {
       priv.columnSettings[physicalColumn] = columnFactory(GridSettings, priv.columnsSettingConflicts);
@@ -2984,7 +2988,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of rows.
    */
   this.countRows = function() {
-    return DataManager.countRenderableRows();
+    return DataManager.countRows();
     // return datamap.getLength();
   };
 
@@ -2996,7 +3000,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {Number} Total number of columns.
    */
   this.countCols = function() {
-    return DataManager.countRenderableColumns();
+    return DataManager.countColumns();
     // const maxCols = this.getSettings().maxCols;
     // let dataHasLength = false;
     // let dataLen = 0;
