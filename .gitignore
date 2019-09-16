@@ -16,5 +16,4 @@ npm-debug.log
 
 !dist/README.md
 node_modules/
-commonjs/
 es/

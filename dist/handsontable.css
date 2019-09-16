@@ -29,7 +29,7 @@
  * FROM USE OR INABILITY TO USE THIS SOFTWARE.
  * 
  * Version: 7.1.1
- * Release date: 12/08/2019 (built at 02/08/2019 13:04:58)
+ * Release date: 12/08/2019 (built at 16/09/2019 10:50:26)
  */
 /**
  * Fix for bootstrap styles
@@ -675,10 +675,6 @@ CheckboxRenderer
   font-style: inherit;
 }
 
-.handsontable.listbox .wtBorder {
-  visibility: hidden;
-}
-
 .handsontable.listbox tr td.current,
 .handsontable.listbox tr:hover td {
   background: #eee;
@@ -688,7 +684,8 @@ CheckboxRenderer
   z-index: 101;
 }
 
-.ht_clone_left {
+.ht_clone_left,
+.ht_clone_bottom {
   z-index: 102;
 }
 
