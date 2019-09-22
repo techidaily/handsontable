@@ -7,7 +7,6 @@ import {
   overlayContainsElement,
   closest,
   outerWidth,
-  outerHeight,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -19,7 +18,7 @@ import { Renderer } from './renderer';
 import Overlay from './overlay/_base';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
-import SvgBorder from './svgBorder';
+import { BorderRenderer } from './borderRenderer';
 
 /**
  *
@@ -100,7 +99,7 @@ class Table {
       cellRenderer: this.wot.wtSettings.settings.cellRenderer,
     });
 
-    this.svgBorder = new SvgBorder(this.spreader);
+    this.borderRenderer = new BorderRenderer(this.spreader);
   }
 
   /**
@@ -269,16 +268,21 @@ class Table {
       } else {
         this.tableOffset = this.wot.cloneSource.wtTable.tableOffset;
       }
+
       const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
       const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
 
       let performRedraw = true;
+
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer();
+
         const skipRender = {};
+
         this.wot.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
       }
@@ -341,7 +345,6 @@ class Table {
         }
       }
     }
-    this.refreshSelections(runFastDraw);
 
     if (this.isMaster) {
       wtOverlays.topOverlay.resetFixedPosition();
@@ -360,6 +363,9 @@ class Table {
         wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
       }
     }
+
+    this.refreshSelections(runFastDraw);
+
     if (syncScroll) {
       wtOverlays.syncScrollWithMaster();
     }
@@ -431,6 +437,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wot } = this;
+
     if (!this.isMaster && !this.is(Overlay.CLONE_BOTTOM)) {
       return;
     }
@@ -468,6 +475,7 @@ class Table {
     if (!wot.selections) {
       return;
     }
+
     const highlights = Array.from(wot.selections);
     const len = highlights.length;
 
@@ -516,47 +524,21 @@ class Table {
       }
     }
 
-    const containerOffset = offset(this.TABLE);
     const argArrays = [];
+
     for (let i = 0; i < len; i++) {
-      highlights[i].draw(wot, (highlight, firstRow, firstColumn, lastRow, lastColumn, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) => { // makes DOM writes
-        if (highlights[i].settings.border) {
-          let priority = 0;
-          if (highlights[i].settings.className) {
-            priority = 1;
-          }
+      const selection = highlights[i];
 
-          const firstTd = this.getCell({ row: firstRow, col: firstColumn });
-          const firstTdOffset = offset(firstTd);
-          let lastTdOffset;
-          let lastTdWidth;
-          let lastTdHeight;
-          if (firstRow === lastRow && firstColumn === lastColumn) {
-            lastTdOffset = firstTdOffset;
-            lastTdWidth = outerWidth(firstTd);
-            lastTdHeight = outerHeight(firstTd);
-          } else {
-            const lastTd = this.getCell({ row: lastRow, col: lastColumn });
-            lastTdOffset = offset(lastTd);
-            lastTdWidth = outerWidth(lastTd);
-            lastTdHeight = outerHeight(lastTd);
-          }
+      selection.draw(wot);
 
-          const rect = {
-            x1: firstTdOffset.left - containerOffset.left,
-            y1: firstTdOffset.top - containerOffset.top,
-            x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
-            y2: lastTdOffset.top - containerOffset.top + lastTdHeight,
-          };
+      const selectedCellsDescriptor = selection.getSelectedCellsDescriptor();
 
-          // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-          const descriptor = [rect, highlight.settings, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
-          argArrays.push(descriptor);
-        }
-      });
+      if (selectedCellsDescriptor.length > 0) {
+        argArrays.push(selection.getSelectedCellsDescriptor());
+      }
     }
 
-    this.svgBorder.render(argArrays);
+    this.borderRenderer.render(this.TABLE, argArrays);
   }
 
   /**
@@ -608,6 +590,7 @@ class Table {
       const columnHeaders = this.wot.getSetting('columnHeaders');
       const columnHeadersCount = columnHeaders.length;
       const zeroBasedHeaderLevel = columnHeadersCount + row;
+
       return this.getColumnHeader(column, zeroBasedHeaderLevel);
     }
 
@@ -651,6 +634,7 @@ class Table {
     if (this.columnFilter.sourceColumnToVisibleRowHeadedColumn(0) === 0) {
       return null;
     }
+
     const TR = this.TBODY.childNodes[this.rowFilter.sourceToRendered(row)];
 
     if (TR) {
@@ -718,6 +702,7 @@ class Table {
     if (this.wot.getSetting('externalRowCalculator')) {
       return;
     }
+
     let rowCount = this.TBODY.childNodes.length;
     const expectedTableHeight = rowCount * this.wot.wtSettings.settings.defaultRowHeight;
     const actualTableHeight = innerHeight(this.TBODY) - 1;
@@ -804,6 +789,7 @@ class Table {
     if (first === -1) {
       return true;
     }
+
     return row < first;
   }
 
@@ -825,8 +811,10 @@ class Table {
       const columnHeaders = this.wot.getSetting('columnHeaders');
       const columnHeadersCount = columnHeaders.length;
       const zeroBasedHeaderLevel = columnHeadersCount + row;
+
       return this.isColumnHeaderLevelRendered(zeroBasedHeaderLevel);
     }
+
     return row > this.getLastRenderedRow();
   }
 
@@ -855,6 +843,7 @@ class Table {
     if (first === -1) {
       return true;
     }
+
     return column < first;
   }
 
@@ -876,8 +865,10 @@ class Table {
       const rowHeaders = this.wot.getSetting('rowHeaders');
       const rowHeadersCount = rowHeaders.length;
       const zeroBasedHeaderLevel = rowHeadersCount + column;
+
       return this.isRowHeaderLevelRendered(zeroBasedHeaderLevel);
     }
+
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
