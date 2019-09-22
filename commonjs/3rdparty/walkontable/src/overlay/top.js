@@ -413,7 +413,7 @@ function (_Overlay) {
         _this2.redrawSelectionBorders(area);
       });
       this.redrawSelectionBorders(selections.getFill());
-      this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh(); // draw SVG rectangles here
+      this.wot.wtTable.wot.wtOverlays.leftOverlay.refresh();
     }
     /**
      * Adds css classes to hide the header border's header (cell-selection border hiding issue).

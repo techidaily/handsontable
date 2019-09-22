@@ -43,14 +43,14 @@ describe('getSvgPathsRenderer', function () {
   var totalHeight = 10;
 
   function callSvgPathsRenderer(rawData) {
-    var stylesAndStrokes = precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
+    var stylesAndCommands = Walkontable.precalculateStylesAndCommands(rawData, totalWidth, totalHeight);
 
-    var strokeStyles = _toConsumableArray(stylesAndStrokes.keys());
+    var strokeStyles = _toConsumableArray(stylesAndCommands.keys());
 
-    var strokeLines = _toConsumableArray(stylesAndStrokes.values());
+    var strokeCommands = _toConsumableArray(stylesAndCommands.values());
 
     svgResizer(totalWidth, totalHeight);
-    svgPathsRenderer(strokeStyles, strokeLines);
+    svgPathsRenderer(strokeStyles, strokeCommands);
   }
 
   beforeEach(function () {
@@ -60,8 +60,8 @@ describe('getSvgPathsRenderer', function () {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.style.background = 'white';
     container.appendChild(svg);
-    svgResizer = getSvgResizer(svg);
-    svgPathsRenderer = getSvgPathsRenderer(svg);
+    svgResizer = Walkontable.getSvgResizer(svg);
+    svgPathsRenderer = Walkontable.getSvgPathsRenderer(svg);
   });
   afterEach(function () {
     document.body.removeChild(container);

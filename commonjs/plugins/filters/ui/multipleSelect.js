@@ -307,6 +307,8 @@ function (_BaseUI) {
         });
 
         _this3.itemsBox.init();
+
+        _this3.itemsBox.selection.highlight.cell.settings.border.width = 0;
       };
 
       hotInitializer(itemsBoxWrapper);

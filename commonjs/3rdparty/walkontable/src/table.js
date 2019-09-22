@@ -41,7 +41,7 @@ var _column2 = _interopRequireDefault(require("./utils/column"));
 
 var _row2 = _interopRequireDefault(require("./utils/row"));
 
-var _svgBorder = _interopRequireDefault(require("./svgBorder"));
+var _borderRenderer = require("./borderRenderer");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -151,7 +151,7 @@ function () {
       columnUtils: this.columnUtils,
       cellRenderer: this.wot.wtSettings.settings.cellRenderer
     });
-    this.svgBorder = new _svgBorder.default(this.spreader);
+    this.borderRenderer = new _borderRenderer.BorderRenderer(this.spreader);
   }
   /**
    * Returns a boolean that is true if this intance of Table represents a specific overlay, identified by the overlay name.
@@ -405,8 +405,6 @@ function () {
         }
       }
 
-      this.refreshSelections(runFastDraw);
-
       if (this.isMaster) {
         wtOverlays.topOverlay.resetFixedPosition();
 
@@ -424,6 +422,8 @@ function () {
           wtOverlays.bottomLeftCornerOverlay.resetFixedPosition();
         }
       }
+
+      this.refreshSelections(runFastDraw);
 
       if (syncScroll) {
         wtOverlays.syncScrollWithMaster();
@@ -534,8 +534,6 @@ function () {
   }, {
     key: "refreshSelections",
     value: function refreshSelections(fastDraw) {
-      var _this2 = this;
-
       var wot = this.wot;
 
       if (!wot.selections) {
@@ -591,62 +589,19 @@ function () {
         }
       }
 
-      var containerOffset = (0, _element.offset)(this.TABLE);
       var argArrays = [];
 
-      var _loop = function _loop(_i3) {
-        highlights[_i3].draw(wot, function (highlight, firstRow, firstColumn, lastRow, lastColumn, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge) {
-          // makes DOM writes
-          if (highlights[_i3].settings.border) {
-            var priority = 0;
-
-            if (highlights[_i3].settings.className) {
-              priority = 1;
-            }
-
-            var firstTd = _this2.getCell({
-              row: firstRow,
-              col: firstColumn
-            });
-
-            var firstTdOffset = (0, _element.offset)(firstTd);
-            var lastTdOffset;
-            var lastTdWidth;
-            var lastTdHeight;
-
-            if (firstRow === lastRow && firstColumn === lastColumn) {
-              lastTdOffset = firstTdOffset;
-              lastTdWidth = (0, _element.outerWidth)(firstTd);
-              lastTdHeight = (0, _element.outerHeight)(firstTd);
-            } else {
-              var lastTd = _this2.getCell({
-                row: lastRow,
-                col: lastColumn
-              });
-
-              lastTdOffset = (0, _element.offset)(lastTd);
-              lastTdWidth = (0, _element.outerWidth)(lastTd);
-              lastTdHeight = (0, _element.outerHeight)(lastTd);
-            }
-
-            var rect = {
-              x1: firstTdOffset.left - containerOffset.left,
-              y1: firstTdOffset.top - containerOffset.top,
-              x2: lastTdOffset.left - containerOffset.left + lastTdWidth,
-              y2: lastTdOffset.top - containerOffset.top + lastTdHeight
-            }; // push arguments to a temporary array to separate bulk DOM writes from DOM reads
-
-            var descriptor = [rect, highlight.settings, priority, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
-            argArrays.push(descriptor);
-          }
-        });
-      };
-
       for (var _i3 = 0; _i3 < len; _i3++) {
-        _loop(_i3);
+        var selection = highlights[_i3];
+        selection.draw(wot);
+        var selectedCellsDescriptor = selection.getSelectedCellsDescriptor();
+
+        if (selectedCellsDescriptor.length > 0) {
+          argArrays.push(selection.getSelectedCellsDescriptor());
+        }
       }
 
-      this.svgBorder.render(argArrays);
+      this.borderRenderer.render(this.TABLE, argArrays);
     }
     /**
      * Get cell element at coords.

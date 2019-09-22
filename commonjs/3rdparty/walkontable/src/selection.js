@@ -71,6 +71,7 @@ function () {
     this.instanceSelectionHandles = new Map();
     this.classNames = [this.settings.className];
     this.classNameGenerator = this.linearClassNameGenerator(this.settings.className, this.settings.layerLevel);
+    this.selectedCellsDescriptor = [];
   }
   /**
    * Returns information if the current selection is configured to display a corner or a selection handle
@@ -194,6 +195,11 @@ function () {
       var bottomRight = this.cellRange.getBottomRightCorner();
       return [topLeft.row, topLeft.col, bottomRight.row, bottomRight.col];
     }
+  }, {
+    key: "getSelectedCellsDescriptor",
+    value: function getSelectedCellsDescriptor() {
+      return this.selectedCellsDescriptor;
+    }
     /**
      * Adds class name to cell element at given coords
      *
@@ -265,6 +271,13 @@ function () {
         return className;
       };
     }
+    /**
+     * Add CSS class names to an element, but only if the element exists
+     *
+     * @param {HTMLElement} elem
+     * @param {Array} classNames
+     */
+
   }, {
     key: "addClassIfElemExists",
     value: function addClassIfElemExists(elem, classNames) {
@@ -278,7 +291,9 @@ function () {
 
   }, {
     key: "draw",
-    value: function draw(wotInstance, selectedCellFn) {
+    value: function draw(wotInstance) {
+      this.selectedCellsDescriptor = [];
+
       if (this.isEmpty()) {
         if (this.hasSelectionHandle()) {
           var found = this.getSelectionHandleIfExists(wotInstance);
@@ -293,6 +308,10 @@ function () {
 
       var renderedRows = wotInstance.wtTable.getRenderedRowsCount();
       var renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
+      var _this$settings = this.settings,
+          highlightHeaderClassName = _this$settings.highlightHeaderClassName,
+          highlightRowClassName = _this$settings.highlightRowClassName,
+          highlightColumnClassName = _this$settings.highlightColumnClassName;
       var corners = this.getCorners();
 
       var _corners = _slicedToArray(corners, 4),
@@ -315,31 +334,31 @@ function () {
       var highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
       var highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
 
-      if (renderedColumns && (this.settings.highlightHeaderClassName || this.settings.highlightColumnClassName)) {
+      if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
         for (var sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
-          this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), [this.settings.highlightHeaderClassName, this.settings.highlightColumnClassName]);
+          this.addClassIfElemExists(wotInstance.wtTable.getColumnHeader(sourceColumn), [highlightHeaderClassName, highlightColumnClassName]);
 
-          if (this.settings.highlightColumnClassName) {
+          if (highlightColumnClassName) {
             for (var renderedRow = 0; renderedRow < renderedRows; renderedRow += 1) {
               if (renderedRow < highlightFirstRenderedRow || renderedRow > highlightLastRenderedRow) {
                 var sourceRow = wotInstance.wtTable.rowFilter.renderedToSource(renderedRow);
-                this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, this.settings.highlightColumnClassName);
+                this.addClassAtCoords(wotInstance, sourceRow, sourceColumn, highlightColumnClassName);
               }
             }
           }
         }
       }
 
-      if (renderedRows && (this.settings.highlightHeaderClassName || this.settings.highlightRowClassName)) {
+      if (renderedRows && (highlightHeaderClassName || highlightRowClassName)) {
         for (var _sourceRow = highlightFirstRenderedRow; _sourceRow <= highlightLastRenderedRow; _sourceRow += 1) {
-          this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(_sourceRow), [this.settings.highlightHeaderClassName, this.settings.highlightRowClassName]);
+          this.addClassIfElemExists(wotInstance.wtTable.getRowHeader(_sourceRow), [highlightHeaderClassName, highlightRowClassName]);
 
-          if (this.settings.highlightRowClassName) {
+          if (highlightRowClassName) {
             for (var renderedColumn = 0; renderedColumn < renderedColumns; renderedColumn += 1) {
               if (renderedColumn < highlightFirstRenderedColumn || renderedColumn > highlightLastRenderedColumn) {
                 var _sourceColumn = wotInstance.wtTable.columnFilter.renderedToSource(renderedColumn);
 
-                this.addClassAtCoords(wotInstance, _sourceRow, _sourceColumn, this.settings.highlightRowClassName);
+                this.addClassAtCoords(wotInstance, _sourceRow, _sourceColumn, highlightRowClassName);
               }
             }
           }
@@ -347,8 +366,27 @@ function () {
       }
 
       if (renderedRows && renderedColumns) {
-        if (highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
-          selectedCellFn(this, highlightFirstRenderedRow, highlightFirstRenderedColumn, highlightLastRenderedRow, highlightLastRenderedColumn, highlightFirstRenderedRow === firstRow, highlightLastRenderedColumn === lastColumn, highlightLastRenderedRow === lastRow, highlightFirstRenderedColumn === firstColumn);
+        if (this.settings.border && highlightFirstRenderedRow <= highlightLastRenderedRow && highlightFirstRenderedColumn <= highlightLastRenderedColumn) {
+          var hasTopEdge = highlightFirstRenderedRow === firstRow;
+          var hasRightEdge = highlightLastRenderedColumn === lastColumn;
+          var hasBottomEdge = highlightLastRenderedRow === lastRow;
+          var hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
+          var firstTd = wotInstance.wtTable.getCell({
+            row: highlightFirstRenderedRow,
+            col: highlightFirstRenderedColumn
+          });
+          var lastTd;
+
+          if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
+            lastTd = firstTd;
+          } else {
+            lastTd = wotInstance.wtTable.getCell({
+              row: highlightLastRenderedRow,
+              col: highlightLastRenderedColumn
+            });
+          }
+
+          this.selectedCellsDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
         }
 
         for (var _sourceRow2 = highlightFirstRenderedRow; _sourceRow2 <= highlightLastRenderedRow; _sourceRow2 += 1) {

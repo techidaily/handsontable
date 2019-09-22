@@ -243,6 +243,9 @@ function (_BasePlugin) {
       this.addHook('afterRowMove', function () {
         return _this2.onAfterRowMove.apply(_this2, arguments);
       });
+      this.addHook('afterLoadData', function () {
+        return _this2.onAfterLoadData.apply(_this2, arguments);
+      });
 
       if (!this.trimRowsPlugin.isEnabled()) {
         // Workaround to prevent calling updateSetttings in the enablePlugin method, which causes many problems.
@@ -727,6 +730,18 @@ function (_BasePlugin) {
       if (priv.skipRender) {
         skipRender.skipRender = true;
       }
+    }
+    /**
+     * `afterLoadData` hook callback.
+     *
+     * @private
+     */
+
+  }, {
+    key: "onAfterLoadData",
+    value: function onAfterLoadData() {
+      this.dataManager.data = this.hot.getSourceData();
+      this.dataManager.rewriteCache();
     }
   }]);
 

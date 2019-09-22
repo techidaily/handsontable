@@ -17,6 +17,12 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
+/**
+ * Converts an SVG image to a ASCII representation in a string
+ *
+ * @param {HTMLElement} svg
+ * @returns {String}
+ */
 function svgToAscii(_x) {
   return _svgToAscii.apply(this, arguments);
 } // var characters = '.,:;i1tfLCG08@◼'.split('');
@@ -63,12 +69,7 @@ function _svgToAscii() {
                   return;
                 }
 
-                var art = imageToAscii(imageData, {
-                  contrast: 0,
-                  // range -255 to +255
-                  invert: false // invert brightness
-
-                });
+                var art = imageToAscii(imageData);
                 resolve(art);
               };
 
@@ -87,15 +88,18 @@ function _svgToAscii() {
 }
 
 var characters = '▯▮'.split('');
+/**
+ * Converts canvas imageData to a ASCII representation in a string
+ *
+ * @param {HTMLElement} imageData
+ * @returns {String}
+ */
 
-function imageToAscii(imageData, options) {
+function imageToAscii(imageData) {
   var width = imageData.width;
   var height = imageData.height;
   var data = imageData.data;
-  var bytesPerPixel = imageData.format === 'RGB24' ? 3 : 4; // calculate contrast factor
-  // http://www.dfstudios.co.uk/articles/image-processing-algorithms-part-5/
-
-  var contrastFactor = 259 * (options.contrast + 255) / (255 * (259 - options.contrast));
+  var bytesPerPixel = imageData.format === 'RGB24' ? 3 : 4;
   var ascii = '';
 
   for (var y = 0; y < height; y++) {
@@ -106,13 +110,12 @@ function imageToAscii(imageData, options) {
       var g = data[offset + 1];
       var b = data[offset + 2]; // increase the contrast of the image
 
-      r = clamp(contrastFactor * (r - 128) + 128, 0, 255);
-      g = clamp(contrastFactor * (g - 128) + 128, 0, 255);
-      b = clamp(contrastFactor * (b - 128) + 128, 0, 255); // calculate pixel brightness
+      r = clamp(r - 128 + 128, 0, 255);
+      g = clamp(g - 128 + 128, 0, 255);
+      b = clamp(b - 128 + 128, 0, 255); // calculate pixel brightness
       // http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
 
-      var brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-      if (!options.invert) brightness = 1 - brightness;
+      var brightness = 1 - (0.299 * r + 0.587 * g + 0.114 * b) / 255;
       ascii += characters[Math.round(brightness * (characters.length - 1))];
     }
 
@@ -121,6 +124,15 @@ function imageToAscii(imageData, options) {
 
   return ascii.slice(0, -1);
 }
+/**
+ * Adjusts the `value` to in the range given by `min` and `max`
+ *
+ * @param {Number} value
+ * @param {Number} min
+ * @param {Number} max
+ * @returns {Number}
+ */
+
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);

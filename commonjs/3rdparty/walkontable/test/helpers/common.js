@@ -18,8 +18,6 @@ require("core-js/modules/es.array.index-of");
 
 require("core-js/modules/es.array.iterator");
 
-require("core-js/modules/es.object.get-own-property-descriptor");
-
 require("core-js/modules/es.object.to-string");
 
 require("core-js/modules/es.promise");
@@ -61,24 +59,12 @@ exports.walkontableCalculateScrollbarWidth = walkontableCalculateScrollbarWidth;
 exports.getScrollbarWidth = getScrollbarWidth;
 exports.expectWtTable = expectWtTable;
 exports.testSvgAsAsciiArt = testSvgAsAsciiArt;
-exports.precalculateStylesAndCommands = exports.getSvgResizer = exports.getSvgPathsRenderer = void 0;
 
 require("regenerator-runtime/runtime");
 
 var _htmlNormalize = require("./htmlNormalize");
 
 var _svgToAscii = _interopRequireDefault(require("./svgToAscii"));
-
-var _svgPathsRenderer = _interopRequireWildcard(require("../../src/svg/svgPathsRenderer"));
-
-exports.getSvgPathsRenderer = _svgPathsRenderer.default;
-exports.precalculateStylesAndCommands = _svgPathsRenderer.precalculateStylesAndCommands;
-
-var _svgResizer = _interopRequireDefault(require("../../src/svg/svgResizer"));
-
-exports.getSvgResizer = _svgResizer.default;
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -463,10 +449,24 @@ function expectWtTable(wt, callb, name) {
 
   return expect(callb(wt.wtOverlays["".concat(name, "Overlay")].clone.wtTable)).withContext("".concat(name, ": ").concat(callbAsString));
 }
+/**
+ * Run expectation towards an SVG image rendering according to the provided reference ASCII art string
+ *
+ * @param {HTMLElement} svg
+ * @param {String} expectedAsciiArt
+ */
+
 
 function testSvgAsAsciiArt(_x, _x2) {
   return _testSvgAsAsciiArt.apply(this, arguments);
 }
+/**
+ * Repeats every character in the string horizontally and vertically by a number.
+ *
+ * @param {String} str String to multiply
+ * @param {Number} factor Integer by which each char will be multiplied
+ */
+
 
 function _testSvgAsAsciiArt() {
   _testSvgAsAsciiArt = _asyncToGenerator(

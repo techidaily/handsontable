@@ -98,6 +98,7 @@ function (_TextEditor) {
       this.htEditor = new this.hot.constructor(this.htContainer, this.htOptions);
       this.htEditor.init();
       this.htEditor.rootElement.style.display = '';
+      this.htEditor.selection.highlight.cell.settings.border.width = 0;
 
       if (this.cellProperties.strict) {
         this.htEditor.selectCell(0, 0);

@@ -280,6 +280,11 @@ function (_BasePlugin) {
       });
       this.render();
     }
+    /**
+     * Instruct Handsontable to re-render, because some of the configuration was changed and we are not expecting it to be
+     * rendered automatically.
+     */
+
   }, {
     key: "render",
     value: function render() {
