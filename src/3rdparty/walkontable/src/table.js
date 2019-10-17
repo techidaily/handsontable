@@ -524,12 +524,46 @@ class Table {
       }
     }
 
+    const renderingOffsets = {
+      right: 0,
+      bottom: 0
+    };
+
+    if (this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
+      renderingOffsets.right = 1;
+      renderingOffsets.bottom = 1;
+    }
+    if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+      renderingOffsets.right = 1;
+    }
+
+    if (this.wot.wtTable.holder.scrollTop === 0 && this.holder.scrollLeft === 0) {
+      // master shares the top edge with the top overlay
+      // master shares the left edge with the left overlay
+
+      if (this.is(Overlay.CLONE_TOP)) {
+        renderingOffsets.bottom = 1;
+      } else if (this.is(Overlay.CLONE_LEFT)) {
+        renderingOffsets.right = 1;
+      }
+
+    } else if (this.holder.scrollTop === 0) {
+      // master shares the top edge with the top overlay
+
+    } else if (this.holder.scrollLeft === 0) {
+      // master shares the left edge with the left overlay
+
+    } else {
+      // master does not share an edge with the top or the left overlay
+
+    }
+
     const borderEdgesDescriptors = [];
 
     for (let i = 0; i < len; i++) {
       const selection = highlights[i];
 
-      selection.draw(wot);
+      selection.draw(wot, renderingOffsets);
 
       const borderEdgesDescriptor = selection.getBorderEdgesDescriptor();
 

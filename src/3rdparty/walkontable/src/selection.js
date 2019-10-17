@@ -230,7 +230,7 @@ class Selection {
   /**
    * @param wotInstance
    */
-  draw(wotInstance) {
+  draw(wotInstance, renderingOffsets) {
     this.borderEdgesDescriptor = [];
 
     if (this.isEmpty()) {
@@ -259,8 +259,8 @@ class Selection {
 
     const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right);
 
     if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
@@ -301,13 +301,26 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        const firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
+        let firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
+        if ((renderingOffsets.bottom || renderingOffsets.right) && typeof firstTd === 'number') {
+          // TD is not rendered on this overlay, lets search elsewhere
+          // wotInstance.wtOverlays.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
+          firstTd = wotInstance.cloneSource.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
+
+          if (typeof firstTd === 'number') {
+            // console.log("suspicious"); // bug when selecting bottom right corner
+          }
+        }
         let lastTd;
 
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
           lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
+          if ((renderingOffsets.bottom || renderingOffsets.right) && typeof lastTd === 'number') {
+            // TD is not rendered on this overlay, lets search elsewhere
+            lastTd = wotInstance.cloneSource.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
+          }
         }
 
         this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
