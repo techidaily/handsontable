@@ -7,7 +7,6 @@ import {
   overlayContainsElement,
   closest,
   outerWidth,
-  outerHeight,
   innerHeight,
   isVisible,
 } from './../../../helpers/dom/element';
@@ -540,73 +539,41 @@ class Table {
     }
 
     const offset2 = offset(this.TABLE);
-    const offsetAdjustment = {top: 0, left:0};
+    const offsetAdjustment = { top: 0, left: 0 };
 
     if (this.isMaster) {
-      // this.wot.cloneSource.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.TABLE
-      if (this.wot.wtOverlays.topLeftCornerOverlay) {
-        const overlayWidth = outerWidth(this.wot.wtOverlays.topLeftCornerOverlay.clone.wtTable.TABLE);
-        const overlayHeight = outerHeight(this.wot.wtOverlays.topLeftCornerOverlay.clone.wtTable.TABLE);
-        // offset2.left += overlayWidth;
-        // offset2.top += overlayHeight;
-        // offsetAdjustment.left = overlayWidth;
-        // offsetAdjustment.top = overlayHeight;
-      }
+      const { topOverlay, leftOverlay } = this.wot.wtOverlays;
 
-      const { topLeftCornerOverlay, bottomLeftCornerOverlay, topOverlay, leftOverlay, bottomOverlay } = this.wot.wtOverlays;
-
-function setZIndex(where, value) {
-  where.borderRenderer.svg.style.zIndex = value;
-}
-
-const _this = this;
-function setAllZIndices(topLeft, bottomLeft, top, left, bottom, master) {
-  topLeftCornerOverlay && setZIndex(topLeftCornerOverlay.clone.wtTable, topLeft);
-        bottomLeftCornerOverlay && setZIndex(bottomLeftCornerOverlay.clone.wtTable, bottomLeft);
-        topOverlay && setZIndex(topOverlay.clone.wtTable, top);
-        leftOverlay && setZIndex(leftOverlay.clone.wtTable, left);
-        bottomOverlay && setZIndex(bottomOverlay.clone.wtTable, bottom);
-        setZIndex(_this, master);
-}
-
-      if(this.holder.scrollTop === 0 && this.holder.scrollLeft === 0) {
-        // setAllZIndices('111', '111', '112', '112', '112', '113');
+      if (this.holder.scrollTop === 0 && this.holder.scrollLeft === 0) {
         if (topOverlay) {
-          this.wot.wtOverlays.topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; //default: 101
+          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
         }
         if (leftOverlay) {
-          this.wot.wtOverlays.leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; //default: 102
+          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; // default: 102
         }
         this.borderRenderer.svg.style.zIndex = '113';
-      }
-      else if(this.holder.scrollTop === 0) {
-        // setAllZIndices('111', '111', '112', '113', '112', '113');
+      } else if (this.holder.scrollTop === 0) {
         if (topOverlay) {
-          this.wot.wtOverlays.topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; //default: 101
+          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
         }
         if (leftOverlay) {
-          this.wot.wtOverlays.leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; //default: 102
+          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; // default: 102
         }
         this.borderRenderer.svg.style.zIndex = '102';
-      }
-      else if(this.holder.scrollLeft === 0) {
-        // setAllZIndices('111', '111', '113', '112', '112', '113');
+      } else if (this.holder.scrollLeft === 0) {
         if (topOverlay) {
-          this.wot.wtOverlays.topOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; //default: 101
+          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; // default: 101
         }
         if (leftOverlay) {
-          this.wot.wtOverlays.leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; //default: 102
+          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 102
         }
         this.borderRenderer.svg.style.zIndex = '102';
-      }
-      else {
-        // setAllZIndices('5', '5', '5', '5', '5', '5');
-
+      } else {
         if (topOverlay) {
-          this.wot.wtOverlays.topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; //default: 101
+          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
         }
         if (leftOverlay) {
-          this.wot.wtOverlays.leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; //default: 102
+          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; // default: 102
         }
         this.borderRenderer.svg.style.zIndex = '5';
       }

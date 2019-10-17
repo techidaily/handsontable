@@ -2,7 +2,6 @@ import { getComputedStyle } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
-import MasterTable from '../table/master';
 
 const offsetToOverLapPrecedingBorder = -1;
 const insetPositioningForCurrentCellHighlight = 1;
