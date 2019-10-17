@@ -542,41 +542,8 @@ class Table {
     const offsetAdjustment = { top: 0, left: 0 };
 
     if (this.isMaster) {
-      const { topOverlay, leftOverlay } = this.wot.wtOverlays;
-
-      if (this.holder.scrollTop === 0 && this.holder.scrollLeft === 0) {
-        if (topOverlay) {
-          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
-        }
-        if (leftOverlay) {
-          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; // default: 102
-        }
-        this.borderRenderer.svg.style.zIndex = '113';
-      } else if (this.holder.scrollTop === 0) {
-        if (topOverlay) {
-          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
-        }
-        if (leftOverlay) {
-          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; // default: 102
-        }
-        this.borderRenderer.svg.style.zIndex = '102';
-      } else if (this.holder.scrollLeft === 0) {
-        if (topOverlay) {
-          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '103'; // default: 101
-        }
-        if (leftOverlay) {
-          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 102
-        }
-        this.borderRenderer.svg.style.zIndex = '102';
-      } else {
-        if (topOverlay) {
-          topOverlay.clone.wtTable.wtRootElement.style.zIndex = '101'; // default: 101
-        }
-        if (leftOverlay) {
-          leftOverlay.clone.wtTable.wtRootElement.style.zIndex = '102'; // default: 102
-        }
-        this.borderRenderer.svg.style.zIndex = '5';
-      }
+      
+      
     }
 
     this.borderRenderer.setContainerOffset(offset2, offsetAdjustment);

@@ -297,12 +297,12 @@ class TextEditor extends BaseEditor {
     if (hasClassHandsontableEditor) {
       this.layerClass = EDITOR_VISIBLE_CLASS_NAME;
 
-      addClass(this.TEXTAREA_PARENT, this.layerClass);
+      // addClass(this.TEXTAREA_PARENT, this.layerClass);
 
     } else {
       this.layerClass = this.getEditedCellsLayerClass();
 
-      addClass(this.TEXTAREA_PARENT, this.layerClass);
+      // addClass(this.TEXTAREA_PARENT, this.layerClass);
     }
   }
 

@@ -8,6 +8,27 @@ import { isChrome } from './../../../helpers/browser';
 import EventManager from './../../../eventManager';
 import Overlay from './overlay/_base';
 
+const defaultZIndices = {
+  MASTER: 100,
+  RIGHT: 110,
+  LEFT: 120,
+  BOTTOM: 130,
+  BOTTOM_RIGHT_CORNER: 140,
+  BOTTOM_LEFT_CORNER: 150,
+  TOP: 160,
+  TOP_RIGHT_CORNER: 170,
+  TOP_LEFT_CORNER: 180,
+  SPECIAL_HIGH_PRIORITY: 190
+};
+
+function setZIndex(elem, value) {
+  elem.style.zIndex = value;
+}
+
+function resetZIndex(elem) {
+  elem.style.zIndex = '';
+}
+
 /**
  * @class Overlays
  */
@@ -460,6 +481,13 @@ class Overlays {
       }
     }
 
+    if (this.bottomOverlay.clone) {
+      this.bottomOverlay.refresh(fastDraw);
+    }
+
+    this.leftOverlay.refresh(fastDraw);
+    this.topOverlay.refresh(fastDraw);
+
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.refresh(fastDraw);
     }
@@ -468,16 +496,74 @@ class Overlays {
       this.bottomLeftCornerOverlay.refresh(fastDraw);
     }
 
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.refresh(fastDraw);
-    }
-
-    this.leftOverlay.refresh(fastDraw);
-    this.topOverlay.refresh(fastDraw);
-
     if (this.debug) {
       this.debug.refresh(fastDraw);
     }
+
+    const { topOverlay, leftOverlay } = this;
+
+      // rule: 
+      // if a clone (that means master or overlay `wtTable`) shares an edge with another clone
+      // then the clone that starts at higher row/column coordinate
+      // must be rendered with a higher zIndex
+      // because it renders its top and left edges with negative offset
+
+
+
+      // master, right, left, bottom, bottom_right_corner, bottom_left_corner, top, top_right_corner, top_left_corner
+      //[  100,    110,   120,  130,    140,                 150,                160, 170,              180]
+
+      // master, right, left, bottom, bottom_right_corner, bottom_left_corner, top, top_right_corner, top_left_corner
+
+      if (this.wot.wtTable.holder.scrollTop === 0 && this.wot.wtTable.holder.scrollLeft === 0) {
+        // master shares the top edge with the top overlay
+        // master shares the left edge with the left overlay
+        console.log('ha1');
+
+        if (topOverlay) {
+          resetZIndex(topOverlay.clone.wtTable.wtRootElement);
+        }
+        if (leftOverlay) {
+          resetZIndex(leftOverlay.clone.wtTable.wtRootElement);
+        }
+        setZIndex(this.wot.wtTable.wtRootElement, defaultZIndices.TOP_LEFT_CORNER + 1);
+
+      } else if (this.wot.wtTable.holder.scrollTop === 0) {
+        // master shares the top edge with the top overlay
+        console.log('ha2');
+        
+        if (topOverlay) {
+          resetZIndex(topOverlay.clone.wtTable.wtRootElement);
+        }
+        if (leftOverlay) {
+          resetZIndex(leftOverlay.clone.wtTable.wtRootElement);
+        }
+        setZIndex(this.wot.wtTable.wtRootElement, defaultZIndices.TOP_LEFT_CORNER + 1);
+
+      } else if (this.wot.wtTable.holder.scrollLeft === 0) {
+        // master shares the left edge with the left overlay
+        console.log('ha3');
+
+        if (topOverlay) {
+          resetZIndex(topOverlay.clone.wtTable.wtRootElement);
+        }
+        if (leftOverlay) {
+          resetZIndex(leftOverlay.clone.wtTable.wtRootElement);
+        }
+        setZIndex(this.wot.wtTable.wtRootElement, defaultZIndices.LEFT + 1);
+
+      } else {
+        // master does not share an edge with the top or the left overlay
+        console.log('ha4');
+
+        if (topOverlay) {
+          resetZIndex(topOverlay.clone.wtTable.wtRootElement);
+        }
+        if (leftOverlay) {
+          resetZIndex(leftOverlay.clone.wtTable.wtRootElement);
+        }
+        resetZIndex(this.wot.wtTable.wtRootElement);
+      }
   }
 
   /**

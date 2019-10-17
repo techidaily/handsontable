@@ -625,6 +625,10 @@ CheckboxRenderer
   z-index: 180;
 }
 
+.ht_clone_special_high_priority {
+  z-index: 190;
+}
+
 .handsontable td.htSearchResult {
   background: #fcedd9;
   color: #583707;
