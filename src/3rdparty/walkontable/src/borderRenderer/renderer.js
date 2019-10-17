@@ -2,6 +2,7 @@ import { getComputedStyle } from './../../../../helpers/dom/element';
 import getSvgPathsRenderer, { adjustLinesToViewBox, convertLinesToCommand } from './svg/pathsRenderer';
 import getSvgResizer from './svg/resizer';
 import svgOptimizePath from './svg/optimizePath';
+import MasterTable from '../table/master';
 
 const offsetToOverLapPrecedingBorder = -1;
 const insetPositioningForCurrentCellHighlight = 1;
@@ -102,6 +103,12 @@ export default class BorderRenderer {
     return found;
   }
 
+  setContainerOffset(offset, offsetAdjustment) {
+    this.containerOffset = offset;
+    this.svg.style.left = `${offsetAdjustment.left}px`;
+    this.svg.style.top = `${offsetAdjustment.top}px`;
+  }
+
   /**
    * Draws the paths according to configuration passed in `argArrays`
    *
@@ -113,6 +120,8 @@ export default class BorderRenderer {
 
     this.maxWidth = 0;
     this.maxHeight = 0;
+
+    // /this.wot.cloneSource.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.TABLE
 
     // batch all calculations
     this.pathGroups.forEach(pathGroup => pathGroup.stylesAndLines.clear());

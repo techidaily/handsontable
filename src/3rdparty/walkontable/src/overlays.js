@@ -460,13 +460,6 @@ class Overlays {
       }
     }
 
-    if (this.bottomOverlay.clone) {
-      this.bottomOverlay.refresh(fastDraw);
-    }
-
-    this.leftOverlay.refresh(fastDraw);
-    this.topOverlay.refresh(fastDraw);
-
     if (this.topLeftCornerOverlay) {
       this.topLeftCornerOverlay.refresh(fastDraw);
     }
@@ -474,6 +467,13 @@ class Overlays {
     if (this.bottomLeftCornerOverlay && this.bottomLeftCornerOverlay.clone) {
       this.bottomLeftCornerOverlay.refresh(fastDraw);
     }
+
+    if (this.bottomOverlay.clone) {
+      this.bottomOverlay.refresh(fastDraw);
+    }
+
+    this.leftOverlay.refresh(fastDraw);
+    this.topOverlay.refresh(fastDraw);
 
     if (this.debug) {
       this.debug.refresh(fastDraw);
