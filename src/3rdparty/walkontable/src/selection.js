@@ -227,6 +227,17 @@ class Selection {
     }
   }
 
+  getRelevantCell(container, coords) {
+    const firstTd = container.getCell(coords);
+
+    if (typeof firstTd === 'number') {
+      // console.log("suspicious"); // bug when selecting bottom right corner
+      // firstTd = container.getCell(coords);
+      // firstTd = undefined;
+    }
+    return firstTd;
+  }
+
   /**
    * @param wotInstance
    */
@@ -259,8 +270,8 @@ class Selection {
 
     const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom.value);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right.value);
 
     if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
@@ -302,14 +313,17 @@ class Selection {
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
         let firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-        if ((renderingOffsets.bottom || renderingOffsets.right) && typeof firstTd === 'number') {
+        if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof firstTd === 'number') {
           // TD is not rendered on this overlay, lets search elsewhere
-          // wotInstance.wtOverlays.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-          firstTd = wotInstance.cloneSource.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-
-          if (typeof firstTd === 'number') {
-            // console.log("suspicious"); // bug when selecting bottom right corner
+          let container;
+          if (highlightFirstRenderedRow > tableLastRenderedRow && highlightFirstRenderedColumn > tableLastRenderedColumn) {
+            container = renderingOffsets.fallbackTarget;
+          } else if (highlightFirstRenderedRow > tableLastRenderedRow) {
+            container = renderingOffsets.bottom.target;
+          } else if (highlightFirstRenderedColumn > tableLastRenderedColumn) {
+            container = renderingOffsets.right.target;
           }
+          firstTd = this.getRelevantCell(container, { row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
         }
         let lastTd;
 
@@ -317,13 +331,23 @@ class Selection {
           lastTd = firstTd;
         } else {
           lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
-          if ((renderingOffsets.bottom || renderingOffsets.right) && typeof lastTd === 'number') {
+          if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof lastTd === 'number') {
             // TD is not rendered on this overlay, lets search elsewhere
-            lastTd = wotInstance.cloneSource.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
+            let container;
+            if (highlightLastRenderedRow > tableLastRenderedRow && highlightLastRenderedColumn > tableLastRenderedColumn) {
+              container = renderingOffsets.fallbackTarget;
+            } else if (highlightLastRenderedColumn > tableLastRenderedColumn) {
+              container = renderingOffsets.right.target;
+            } else if (highlightLastRenderedRow > tableLastRenderedRow) {
+              container = renderingOffsets.bottom.target;
+            }
+            lastTd = this.getRelevantCell(container, { row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
           }
         }
 
-        this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        if (firstTd && lastTd) {
+          this.borderEdgesDescriptor = [this.settings, firstTd, lastTd, hasTopEdge, hasRightEdge, hasBottomEdge, hasLeftEdge];
+        }
       }
 
       for (let sourceRow = highlightFirstRenderedRow; sourceRow <= highlightLastRenderedRow; sourceRow += 1) {
