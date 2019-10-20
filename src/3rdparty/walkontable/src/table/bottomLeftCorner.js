@@ -1,4 +1,5 @@
 import Table from '../table';
+import overlay from './mixin/overlay';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
 import stickyColumnsLeft from './mixin/stickyColumnsLeft';
 import { mixin } from './../../../../helpers/object';
@@ -16,6 +17,7 @@ class BottomLeftCornerOverlayTable extends Table {
   }
 }
 
+mixin(BottomLeftCornerOverlayTable, overlay);
 mixin(BottomLeftCornerOverlayTable, stickyRowsBottom);
 mixin(BottomLeftCornerOverlayTable, stickyColumnsLeft);
 

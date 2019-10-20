@@ -1,4 +1,5 @@
 import Table from '../table';
+import overlay from './mixin/overlay';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
@@ -12,6 +13,7 @@ class BottomOverlayTable extends Table {
   }
 }
 
+mixin(BottomOverlayTable, overlay);
 mixin(BottomOverlayTable, stickyRowsBottom);
 mixin(BottomOverlayTable, calculatedColumns);
 

@@ -247,13 +247,13 @@ class Selection {
 
       let container;
       if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
-        container = renderingOffsets.fallbackTarget;
+        container = wotInstance.wtTable.diagonalNeighbourTable();
       } else if (row > lastRenderedRow) {
-        container = renderingOffsets.bottom.target;
+        container = wotInstance.wtTable.southNeighbourTable();
       } else if (col > lastRenderedColumn) {
-        container = renderingOffsets.right.target;
+        container = wotInstance.wtTable.eastNeighbourTable();
       } else if (row < firstRenderedRow) {
-        container = renderingOffsets.top.target;
+        container = wotInstance.wtTable.northNeighbourTable();
       }
 
       td = container.getCell({ row, col });

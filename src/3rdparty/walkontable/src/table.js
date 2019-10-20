@@ -525,34 +525,25 @@ class Table {
     }
 
     const renderingOffsets = {
-      fallbackTarget: this.isMaster ? null : this.wot.cloneSource.wtTable,
       right: {
         value: 0,
-        target: null
       },
       bottom: {
         value: 0,
-        target: null
       },
       top: {
         value: 0,
-        target: null
       }
     };
 
     if (this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
       renderingOffsets.right.value = 1;
-      renderingOffsets.right.target = this.eastNeighbourTable();
       renderingOffsets.bottom.value = 1;
-      renderingOffsets.bottom.target = this.southNeighbourTable();
     } else if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       renderingOffsets.right.value = 1;
-      renderingOffsets.right.target = this.eastNeighbourTable();
       renderingOffsets.top.value = -1;
-      renderingOffsets.top.target = this.northNeighbourTable();
     } else if (this.is(Overlay.CLONE_BOTTOM)) {
       renderingOffsets.top.value = -1;
-      renderingOffsets.top.target = this.northNeighbourTable();
     }
 
     const masterHolder = this.isMaster ? this.wot.wtTable.holder : this.wot.cloneSource.wtTable.holder;
@@ -562,10 +553,8 @@ class Table {
 
       if (this.is(Overlay.CLONE_TOP)) {
         renderingOffsets.bottom.value = 1;
-        renderingOffsets.bottom.target = this.southNeighbourTable();
       } else if (this.is(Overlay.CLONE_LEFT)) {
         renderingOffsets.right.value = 1;
-        renderingOffsets.right.target = this.eastNeighbourTable();
       }
 
     } else if (masterHolder.scrollTop === 0) {
@@ -573,7 +562,6 @@ class Table {
 
       if (this.is(Overlay.CLONE_TOP)) {
         renderingOffsets.bottom.value = 1;
-        renderingOffsets.bottom.target = this.southNeighbourTable();
       }
 
     } else if (masterHolder.scrollLeft === 0) {
@@ -581,7 +569,6 @@ class Table {
 
       if (this.is(Overlay.CLONE_LEFT)) {
         renderingOffsets.right.value = 1;
-        renderingOffsets.right.target = this.eastNeighbourTable();
       }
 
     } else {
