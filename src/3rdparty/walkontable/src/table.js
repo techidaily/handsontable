@@ -525,42 +525,36 @@ class Table {
     }
 
     const renderingOffsets = {
-      right: {
-        value: 0,
-      },
-      bottom: {
-        value: 0,
-      },
-      top: {
-        value: 0,
-      }
+      right: 0,
+      bottom: 0,
+      top: 0
     };
 
     if (this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
       if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-        renderingOffsets.right.value = 1;
+        renderingOffsets.right = 1;
       }
       if (this.southNeighbourTable().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
-        renderingOffsets.bottom.value = 1;
+        renderingOffsets.bottom = 1;
       }
     } else if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-        renderingOffsets.right.value = 1;
+        renderingOffsets.right = 1;
       }
       if (this.northNeighbourTable().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
-        renderingOffsets.top.value = -1;
+        renderingOffsets.top = -1;
       }
     } else if (this.is(Overlay.CLONE_BOTTOM)) {
       if (this.northNeighbourTable().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
-        renderingOffsets.top.value = -1;
+        renderingOffsets.top = -1;
       }
     } else if (this.is(Overlay.CLONE_TOP)) {
       if (this.southNeighbourTable().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
-        renderingOffsets.bottom.value = 1;
+        renderingOffsets.bottom = 1;
       }
     } else if (this.is(Overlay.CLONE_LEFT)) {
       if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-        renderingOffsets.right.value = 1;
+        renderingOffsets.right = 1;
       }
     }
 

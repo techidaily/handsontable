@@ -243,7 +243,7 @@ class Selection {
   getRelevantCell(wotInstance, renderingOffsets, row, col, firstRenderedRow, firstRenderedColumn, lastRenderedRow, lastRenderedColumn) {
     let td = wotInstance.wtTable.getCell({ row, col });
 
-    if (/*(renderingOffsets.bottom.value || renderingOffsets.right.value || renderingOffsets.top.value) && */typeof td === 'number') {
+    if (/*(renderingOffsets.bottom || renderingOffsets.right || renderingOffsets.top) && */typeof td === 'number') {
 
       let container;
       if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
@@ -297,10 +297,10 @@ class Selection {
     const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
     const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
-    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsets.top.value);
+    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsets.top);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom.value);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right.value);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right);
 
     if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
