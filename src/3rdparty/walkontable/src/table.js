@@ -537,43 +537,31 @@ class Table {
     };
 
     if (this.is(Overlay.CLONE_TOP_LEFT_CORNER)) {
-      renderingOffsets.right.value = 1;
-      renderingOffsets.bottom.value = 1;
+      if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
+        renderingOffsets.right.value = 1;
+      }
+      if (this.southNeighbourTable().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
+        renderingOffsets.bottom.value = 1;
+      }
     } else if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
-      renderingOffsets.right.value = 1;
-      renderingOffsets.top.value = -1;
+      if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
+        renderingOffsets.right.value = 1;
+      }
+      if (this.northNeighbourTable().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
+        renderingOffsets.top.value = -1;
+      }
     } else if (this.is(Overlay.CLONE_BOTTOM)) {
-      renderingOffsets.top.value = -1;
-    }
-
-    const masterHolder = this.isMaster ? this.wot.wtTable.holder : this.wot.cloneSource.wtTable.holder;
-    if (masterHolder.scrollTop === 0 && masterHolder.scrollLeft === 0) {
-      // master shares the top edge with the top overlay
-      // master shares the left edge with the left overlay
-
-      if (this.is(Overlay.CLONE_TOP)) {
-        renderingOffsets.bottom.value = 1;
-      } else if (this.is(Overlay.CLONE_LEFT)) {
-        renderingOffsets.right.value = 1;
+      if (this.northNeighbourTable().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
+        renderingOffsets.top.value = -1;
       }
-
-    } else if (masterHolder.scrollTop === 0) {
-      // master shares the top edge with the top overlay
-
-      if (this.is(Overlay.CLONE_TOP)) {
+    } else if (this.is(Overlay.CLONE_TOP)) {
+      if (this.southNeighbourTable().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
         renderingOffsets.bottom.value = 1;
       }
-
-    } else if (masterHolder.scrollLeft === 0) {
-      // master shares the left edge with the left overlay
-
-      if (this.is(Overlay.CLONE_LEFT)) {
+    } else if (this.is(Overlay.CLONE_LEFT)) {
+      if (this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
         renderingOffsets.right.value = 1;
       }
-
-    } else {
-      // master does not share an edge with the top or the left overlay
-
     }
 
     const borderEdgesDescriptors = [];
