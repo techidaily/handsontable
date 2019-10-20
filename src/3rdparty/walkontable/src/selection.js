@@ -227,19 +227,38 @@ class Selection {
     }
   }
 
-  getRelevantCell(container, coords) {
-    const firstTd = container.getCell(coords);
+  /**
+   * Get TD from a relevant overlay in case when the TD is not rendered on the current overlay. The TD is needed for
+   * measuremens done on `borderEdgesDescriptor`.
+   *
+   * @param {Walkontable} wotInstance
+   * @param {Object} renderingOffsets Object that contains property `fallbackTarget` and subtrees `bottom`, `right`, each with a subtree that contains properties `value`, `target`
+   * @param {Number} row
+   * @param {Number} col
+   * @param {Number} lastRenderedRow
+   * @param {Number} lastRenderedColumn
+   */
+  getRelevantCell(wotInstance, renderingOffsets, row, col, lastRenderedRow, lastRenderedColumn) {
+    let td = wotInstance.wtTable.getCell({ row, col });
+    if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof td === 'number') {
 
-    if (typeof firstTd === 'number') {
-      // console.log("suspicious"); // bug when selecting bottom right corner
-      // firstTd = container.getCell(coords);
-      // firstTd = undefined;
+      let container;
+      if (row > lastRenderedRow && col > lastRenderedColumn) {
+        container = renderingOffsets.fallbackTarget;
+      } else if (row > lastRenderedRow) {
+        container = renderingOffsets.bottom.target;
+      } else if (col > lastRenderedColumn) {
+        container = renderingOffsets.right.target;
+      }
+
+      td = container.getCell({ row, col });
     }
-    return firstTd;
+    return td;
   }
 
   /**
-   * @param wotInstance
+   * @param {Walkontable} wotInstance
+   * @param {Object} renderingOffsets Object that contains property `fallbackTarget` and subtrees `bottom`, `right`, each with a subtree that contains properties `value`, `target`
    */
   draw(wotInstance, renderingOffsets) {
     this.borderEdgesDescriptor = [];
@@ -312,37 +331,13 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        let firstTd = wotInstance.wtTable.getCell({ row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-        if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof firstTd === 'number') {
-          // TD is not rendered on this overlay, lets search elsewhere
-          let container;
-          if (highlightFirstRenderedRow > tableLastRenderedRow && highlightFirstRenderedColumn > tableLastRenderedColumn) {
-            container = renderingOffsets.fallbackTarget;
-          } else if (highlightFirstRenderedRow > tableLastRenderedRow) {
-            container = renderingOffsets.bottom.target;
-          } else if (highlightFirstRenderedColumn > tableLastRenderedColumn) {
-            container = renderingOffsets.right.target;
-          }
-          firstTd = this.getRelevantCell(container, { row: highlightFirstRenderedRow, col: highlightFirstRenderedColumn });
-        }
+        const firstTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightFirstRenderedRow, highlightFirstRenderedColumn, tableLastRenderedRow, tableLastRenderedColumn);
         let lastTd;
 
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
-          lastTd = wotInstance.wtTable.getCell({ row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
-          if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof lastTd === 'number') {
-            // TD is not rendered on this overlay, lets search elsewhere
-            let container;
-            if (highlightLastRenderedRow > tableLastRenderedRow && highlightLastRenderedColumn > tableLastRenderedColumn) {
-              container = renderingOffsets.fallbackTarget;
-            } else if (highlightLastRenderedColumn > tableLastRenderedColumn) {
-              container = renderingOffsets.right.target;
-            } else if (highlightLastRenderedRow > tableLastRenderedRow) {
-              container = renderingOffsets.bottom.target;
-            }
-            lastTd = this.getRelevantCell(container, { row: highlightLastRenderedRow, col: highlightLastRenderedColumn });
-          }
+          lastTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightLastRenderedRow, highlightLastRenderedColumn, tableLastRenderedRow, tableLastRenderedColumn);
         }
 
         if (firstTd && lastTd) {
