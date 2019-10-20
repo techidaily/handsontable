@@ -95,37 +95,37 @@ class Walkontable {
    * @returns {Object}
    */
   getCell(coords, topmost = false) {
-    if (!topmost) {
-      return this.wtTable.getCell(coords);
+    const master = this.cloneSource ? this.cloneSource : this;
+
+    if (topmost) {
+      const totalRows = this.wtSettings.getSetting('totalRows');
+      const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
+      const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
+      const fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
+
+      if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
+        return master.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
+
+      } else if (coords.row < fixedRowsTop) {
+        return master.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
+
+      } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
+        if (master.wtOverlays.bottomLeftCornerOverlay && master.wtOverlays.bottomLeftCornerOverlay.clone) {
+          return master.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
+        }
+
+      } else if (coords.col < fixedColumns) {
+        return master.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
+
+      } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
+        if (master.wtOverlays.bottomOverlay && master.wtOverlays.bottomOverlay.clone) {
+          return master.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
+        }
+
+      }
     }
 
-    const totalRows = this.wtSettings.getSetting('totalRows');
-    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop');
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    const fixedColumns = this.wtSettings.getSetting('fixedColumnsLeft');
-
-    if (coords.row < fixedRowsTop && coords.col < fixedColumns) {
-      return this.wtOverlays.topLeftCornerOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.col < fixedColumns && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomLeftCornerOverlay && this.wtOverlays.bottomLeftCornerOverlay.clone) {
-        return this.wtOverlays.bottomLeftCornerOverlay.clone.wtTable.getCell(coords);
-      }
-
-    } else if (coords.col < fixedColumns) {
-      return this.wtOverlays.leftOverlay.clone.wtTable.getCell(coords);
-
-    } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
-        return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(coords);
-      }
-
-    }
-
-    return this.wtTable.getCell(coords);
+    return master.wtTable.getCell(coords);
   }
 
   /**

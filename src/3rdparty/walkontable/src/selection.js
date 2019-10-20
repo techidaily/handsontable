@@ -254,7 +254,7 @@ class Selection {
         container = wotInstance.wtTable.northNeighbourTable();
       }
 
-      td = container.getCell({ row, col });
+      td = wotInstance.getCell({ row, col }, true);
     }
 
     if (typeof td === 'number') {
