@@ -7,7 +7,9 @@ import { mixin } from './../../../../helpers/object';
  * Subclass of `Table` that provides the helper methods relevant to LeftOverlay, implemented through mixins.
  */
 class LeftOverlayTable extends Table {
-
+  eastNeighbourTable() {
+    return this.wot.cloneSource.wtTable;
+  }
 }
 
 mixin(LeftOverlayTable, calculatedRows);

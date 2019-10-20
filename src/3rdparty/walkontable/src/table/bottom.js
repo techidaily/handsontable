@@ -7,7 +7,9 @@ import { mixin } from './../../../../helpers/object';
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
  */
 class BottomOverlayTable extends Table {
-
+  northNeighbourTable() {
+    return this.wot.cloneSource.wtTable;
+  }
 }
 
 mixin(BottomOverlayTable, stickyRowsBottom);
