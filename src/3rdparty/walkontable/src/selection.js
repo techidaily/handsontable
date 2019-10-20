@@ -235,24 +235,30 @@ class Selection {
    * @param {Object} renderingOffsets Object that contains property `fallbackTarget` and subtrees `bottom`, `right`, each with a subtree that contains properties `value`, `target`
    * @param {Number} row
    * @param {Number} col
+   * @param {Number} firstRenderedRow
+   * @param {Number} firstRenderedColumn
    * @param {Number} lastRenderedRow
    * @param {Number} lastRenderedColumn
    */
-  getRelevantCell(wotInstance, renderingOffsets, row, col, lastRenderedRow, lastRenderedColumn) {
+  getRelevantCell(wotInstance, renderingOffsets, row, col, firstRenderedRow, firstRenderedColumn, lastRenderedRow, lastRenderedColumn) {
     let td = wotInstance.wtTable.getCell({ row, col });
-    if ((renderingOffsets.bottom.value || renderingOffsets.right.value) && typeof td === 'number') {
+
+    if (/*(renderingOffsets.bottom.value || renderingOffsets.right.value || renderingOffsets.top.value) && */typeof td === 'number') {
 
       let container;
-      if (row > lastRenderedRow && col > lastRenderedColumn) {
+      if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
         container = renderingOffsets.fallbackTarget;
       } else if (row > lastRenderedRow) {
         container = renderingOffsets.bottom.target;
       } else if (col > lastRenderedColumn) {
         container = renderingOffsets.right.target;
+      } else if (row < firstRenderedRow) {
+        container = renderingOffsets.top.target;
       }
 
       td = container.getCell({ row, col });
     }
+
     return td;
   }
 
@@ -287,7 +293,7 @@ class Selection {
     const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
     const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
-    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow);
+    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsets.top.value);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
     const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom.value);
     const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right.value);
@@ -331,13 +337,15 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        const firstTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightFirstRenderedRow, highlightFirstRenderedColumn, tableLastRenderedRow, tableLastRenderedColumn);
+        const firstTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightFirstRenderedRow, highlightFirstRenderedColumn,
+          tableFirstRenderedRow, tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         let lastTd;
 
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
-          lastTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightLastRenderedRow, highlightLastRenderedColumn, tableLastRenderedRow, tableLastRenderedColumn);
+          lastTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightLastRenderedRow, highlightLastRenderedColumn,
+            tableFirstRenderedRow, tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         }
 
         if (firstTd && lastTd) {

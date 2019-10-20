@@ -525,6 +525,7 @@ class Table {
     }
 
     const renderingOffsets = {
+      fallbackTarget: this.isMaster ? null : this.wot.cloneSource.wtTable,
       right: {
         value: 0,
         target: null
@@ -533,7 +534,7 @@ class Table {
         value: 0,
         target: null
       },
-      top: { // TODO do this for bottom
+      top: {
         value: 0,
         target: null
       }
@@ -544,15 +545,14 @@ class Table {
       renderingOffsets.right.target = this.wot.cloneSource.wtOverlays.topOverlay.clone.wtTable;
       renderingOffsets.bottom.value = 1;
       renderingOffsets.bottom.target = this.wot.cloneSource.wtOverlays.leftOverlay.clone.wtTable;
-      renderingOffsets.fallbackTarget = this.wot.cloneSource.wtTable;
-    }
-    if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
+    } else if (this.is(Overlay.CLONE_BOTTOM_LEFT_CORNER)) {
       renderingOffsets.right.value = 1;
       renderingOffsets.right.target = this.wot.cloneSource.wtOverlays.bottomOverlay.clone.wtTable;
-    }
-
-    if (this.is(Overlay.CLONE_LEFT)) {
-      // console.log("refresh");
+      renderingOffsets.top.value = -1;
+      renderingOffsets.top.target = this.wot.cloneSource.wtOverlays.leftOverlay.clone.wtTable;
+    } else if (this.is(Overlay.CLONE_BOTTOM)) {
+      renderingOffsets.top.value = -1;
+      renderingOffsets.top.target = this.wot.cloneSource.wtTable;
     }
 
     const masterHolder = this.isMaster ? this.wot.wtTable.holder : this.wot.cloneSource.wtTable.holder;
