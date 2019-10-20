@@ -259,6 +259,10 @@ class Selection {
       td = container.getCell({ row, col });
     }
 
+    if (typeof td === 'number') {
+      td = undefined;
+    }
+
     return td;
   }
 
