@@ -232,15 +232,13 @@ class Selection {
    * measuremens done on `borderEdgesDescriptor`.
    *
    * @param {Walkontable} wotInstance
-   * @param {Object} renderingOffsets Object that contains property `fallbackTarget` and subtrees `bottom`, `right`, each with a subtree that contains properties `value`, `target`
    * @param {Number} row
    * @param {Number} col
    * @param {Number} firstRenderedRow
-   * @param {Number} firstRenderedColumn
    * @param {Number} lastRenderedRow
    * @param {Number} lastRenderedColumn
    */
-  getRelevantCell(wotInstance, renderingOffsets, row, col, firstRenderedRow, firstRenderedColumn, lastRenderedRow, lastRenderedColumn) {
+  getRelevantCell(wotInstance, row, col, firstRenderedRow, lastRenderedRow, lastRenderedColumn) {
     let td = wotInstance.wtTable.getCell({ row, col });
 
     if (/*(renderingOffsets.bottom || renderingOffsets.right || renderingOffsets.top) && */typeof td === 'number') {
@@ -341,15 +339,15 @@ class Selection {
         const hasBottomEdge = highlightLastRenderedRow === lastRow;
         const hasLeftEdge = highlightFirstRenderedColumn === firstColumn;
 
-        const firstTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightFirstRenderedRow, highlightFirstRenderedColumn,
-          tableFirstRenderedRow, tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
+        const firstTd = this.getRelevantCell(wotInstance, highlightFirstRenderedRow, highlightFirstRenderedColumn,
+          tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         let lastTd;
 
         if (highlightFirstRenderedRow === highlightLastRenderedRow && highlightFirstRenderedColumn === highlightLastRenderedColumn) {
           lastTd = firstTd;
         } else {
-          lastTd = this.getRelevantCell(wotInstance, renderingOffsets, highlightLastRenderedRow, highlightLastRenderedColumn,
-            tableFirstRenderedRow, tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
+          lastTd = this.getRelevantCell(wotInstance, highlightLastRenderedRow, highlightLastRenderedColumn,
+            tableFirstRenderedRow, tableLastRenderedRow, tableLastRenderedColumn);
         }
 
         if (firstTd && lastTd) {
