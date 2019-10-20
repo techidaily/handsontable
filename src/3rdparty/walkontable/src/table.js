@@ -524,28 +524,12 @@ class Table {
       }
     }
 
-    const renderingOffsets = {
-      right: 0,
-      bottom: 0,
-      top: 0
-    };
-
-    if (this.eastNeighbourTable && this.eastNeighbourTable().getFirstVisibleColumn() === this.getLastVisibleColumn() + 1) {
-      renderingOffsets.right = 1;
-    }
-    if (this.southNeighbourTable && this.southNeighbourTable().getFirstVisibleRow() === this.getLastVisibleRow() + 1) {
-      renderingOffsets.bottom = 1;
-    }
-    if (this.northNeighbourTable && this.northNeighbourTable().getLastVisibleRow() === this.getFirstVisibleRow() - 1) {
-      renderingOffsets.top = -1;
-    }
-
     const borderEdgesDescriptors = [];
 
     for (let i = 0; i < len; i++) {
       const selection = highlights[i];
 
-      selection.draw(wot, renderingOffsets);
+      selection.draw(wot);
 
       const borderEdgesDescriptor = selection.getBorderEdgesDescriptor();
 

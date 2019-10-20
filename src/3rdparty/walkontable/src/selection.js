@@ -241,7 +241,7 @@ class Selection {
   getRelevantCell(wotInstance, row, col, firstRenderedRow, lastRenderedRow, lastRenderedColumn) {
     let td = wotInstance.wtTable.getCell({ row, col });
 
-    if (/*(renderingOffsets.bottom || renderingOffsets.right || renderingOffsets.top) && */typeof td === 'number') {
+    if (/* (renderingOffsets.bottom || renderingOffsets.right || renderingOffsets.top) && */typeof td === 'number') {
 
       let container;
       if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
@@ -266,9 +266,8 @@ class Selection {
 
   /**
    * @param {Walkontable} wotInstance
-   * @param {Object} renderingOffsets Object that contains property `fallbackTarget` and subtrees `bottom`, `right`, each with a subtree that contains properties `value`, `target`
    */
-  draw(wotInstance, renderingOffsets) {
+  draw(wotInstance) {
     this.borderEdgesDescriptor = [];
 
     if (this.isEmpty()) {
@@ -295,10 +294,24 @@ class Selection {
     const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
     const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
-    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsets.top);
+    let renderingOffsetEast = 0;
+    let renderingOffsetSouth = 0;
+    let renderingOffsetNorth = 0;
+
+    if (wotInstance.wtTable.eastNeighbourTable && wotInstance.wtTable.eastNeighbourTable().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
+      renderingOffsetEast = 1;
+    }
+    if (wotInstance.wtTable.southNeighbourTable && wotInstance.wtTable.southNeighbourTable().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
+      renderingOffsetSouth = 1;
+    }
+    if (wotInstance.wtTable.northNeighbourTable && wotInstance.wtTable.northNeighbourTable().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
+      renderingOffsetNorth = -1;
+    }
+
+    const highlightFirstRenderedRow = Math.max(firstRow, tableFirstRenderedRow + renderingOffsetNorth);
     const highlightFirstRenderedColumn = Math.max(firstColumn, tableFirstRenderedColumn);
-    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsets.bottom);
-    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsets.right);
+    const highlightLastRenderedRow = Math.min(lastRow, tableLastRenderedRow + renderingOffsetSouth);
+    const highlightLastRenderedColumn = Math.min(lastColumn, tableLastRenderedColumn + renderingOffsetEast);
 
     if (renderedColumns && (highlightHeaderClassName || highlightColumnClassName)) {
       for (let sourceColumn = highlightFirstRenderedColumn; sourceColumn <= highlightLastRenderedColumn; sourceColumn += 1) {
