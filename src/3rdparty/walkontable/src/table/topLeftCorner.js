@@ -8,9 +8,9 @@ import { mixin } from './../../../../helpers/object';
  */
 class TopLeftCornerOverlayTable extends Table {
   /**
-   * Returns an instance of `Table` that renders the columns after the last column 
+   * Returns an instance of `Table` that renders the columns after the last column
    * in the current instance of `Table`.
-   * 
+   *
    * @returns {Table}
    */
   getTableNeighborEast() {
@@ -18,9 +18,9 @@ class TopLeftCornerOverlayTable extends Table {
   }
 
   /**
-   * Returns an instance of `Table` that renders the rows after the last row 
+   * Returns an instance of `Table` that renders the rows after the last row
    * in the current instance of `Table`.
-   * 
+   *
    * @returns {Table}
    */
   getTableNeighborSouth() {
@@ -30,7 +30,7 @@ class TopLeftCornerOverlayTable extends Table {
   /**
    * Returns an instance of `Table` that renders the rows after the last rows, and the columns after the last column
    * in the current instance of `Table`.
-   * 
+   *
    * @returns {Table}
    */
   getTableNeighborDiagonal() {

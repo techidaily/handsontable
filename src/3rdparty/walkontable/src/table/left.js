@@ -8,9 +8,9 @@ import { mixin } from './../../../../helpers/object';
  */
 class LeftOverlayTable extends Table {
   /**
-   * Returns an instance of `Table` that renders the columns after the last column 
+   * Returns an instance of `Table` that renders the columns after the last column
    * in the current instance of `Table`.
-   * 
+   *
    * @returns {Table}
    */
   getTableNeighborEast() {

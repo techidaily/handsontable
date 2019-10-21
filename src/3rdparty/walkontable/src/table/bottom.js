@@ -8,9 +8,9 @@ import { mixin } from './../../../../helpers/object';
  */
 class BottomOverlayTable extends Table {
   /**
-   * Returns an instance of `Table` that renders the rows before the first row 
+   * Returns an instance of `Table` that renders the rows before the first row
    * in the current instance of `Table`.
-   * 
+   *
    * @returns {Table}
    */
   getTableNeighborNorth() {

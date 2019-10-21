@@ -296,21 +296,21 @@ class Selection {
 
     /*
     renderingOffsets are used to render side effects of borders from other overlays,
-    e.g. when fixedRowsTop === 1, render the top border of the cell A2 (on master table) 
+    e.g. when fixedRowsTop === 1, render the top border of the cell A2 (on master table)
     as the bottom border of the cell A1 (on the top overlay table).
     */
 
-    let renderingOffsetEast = 0; 
+    let renderingOffsetEast = 0;
     let renderingOffsetSouth = 0;
     let renderingOffsetNorth = 0;
 
-    if (wotInstance.wtTable.eastNeighborTable && wotInstance.wtTable.getTableNeighborEast().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
+    if (wotInstance.wtTable.getTableNeighborEast && wotInstance.wtTable.getTableNeighborEast().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
       renderingOffsetEast = 1;
     }
-    if (wotInstance.wtTable.southNeighborTable && wotInstance.wtTable.getTableNeighborSouth().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
+    if (wotInstance.wtTable.getTableNeighborSouth && wotInstance.wtTable.getTableNeighborSouth().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
       renderingOffsetSouth = 1;
     }
-    if (wotInstance.wtTable.northNeighborTable && wotInstance.wtTable.getTableNeighborNorth().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
+    if (wotInstance.wtTable.getTableNeighborNorth && wotInstance.wtTable.getTableNeighborNorth().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
       renderingOffsetNorth = -1;
     }
 
