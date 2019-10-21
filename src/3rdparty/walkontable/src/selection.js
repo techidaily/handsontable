@@ -282,7 +282,7 @@ class Selection {
       return;
     }
 
-    const { wtTable } = wotInstance.wtTable;
+    const { wtTable } = wotInstance;
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
 
