@@ -282,6 +282,7 @@ class Selection {
       return;
     }
 
+    const { wtTable } = wotInstance.wtTable;
     const renderedRows = wotInstance.wtTable.getRenderedRowsCount();
     const renderedColumns = wotInstance.wtTable.getRenderedColumnsCount();
 
@@ -304,13 +305,13 @@ class Selection {
     let renderingOffsetSouth = 0;
     let renderingOffsetNorth = 0;
 
-    if (wotInstance.wtTable.getTableNeighborEast && wotInstance.wtTable.getTableNeighborEast().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
+    if (wtTable.getTableNeighborEast && wtTable.getTableNeighborEast().getFirstVisibleColumn() === wtTable.getLastVisibleColumn() + 1) {
       renderingOffsetEast = 1;
     }
-    if (wotInstance.wtTable.getTableNeighborSouth && wotInstance.wtTable.getTableNeighborSouth().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
+    if (wtTable.getTableNeighborSouth && wtTable.getTableNeighborSouth().getFirstVisibleRow() === wtTable.getLastVisibleRow() + 1) {
       renderingOffsetSouth = 1;
     }
-    if (wotInstance.wtTable.getTableNeighborNorth && wotInstance.wtTable.getTableNeighborNorth().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
+    if (wtTable.getTableNeighborNorth && wtTable.getTableNeighborNorth().getLastVisibleRow() === wtTable.getFirstVisibleRow() - 1) {
       renderingOffsetNorth = -1;
     }
 
