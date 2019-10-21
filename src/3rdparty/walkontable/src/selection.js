@@ -245,13 +245,13 @@ class Selection {
 
       let container;
       if ((row > lastRenderedRow && col > lastRenderedColumn) || (col > lastRenderedColumn && row < firstRenderedRow)) {
-        container = wotInstance.wtTable.diagonalNeighbourTable();
+        container = wotInstance.wtTable.getTableNeighborDiagonal();
       } else if (row > lastRenderedRow) {
-        container = wotInstance.wtTable.southNeighbourTable();
+        container = wotInstance.wtTable.getTableNeighborSouth();
       } else if (col > lastRenderedColumn) {
-        container = wotInstance.wtTable.eastNeighbourTable();
+        container = wotInstance.wtTable.getTableNeighborEast();
       } else if (row < firstRenderedRow) {
-        container = wotInstance.wtTable.northNeighbourTable();
+        container = wotInstance.wtTable.getTableNeighborNorth();
       }
 
       td = container.getCell({ row, col });
@@ -294,17 +294,23 @@ class Selection {
     const tableLastRenderedRow = wotInstance.wtTable.getLastRenderedRow(); // null when there are no rendered rows
     const tableLastRenderedColumn = wotInstance.wtTable.getLastRenderedColumn(); // null when there are no rendered columns
 
-    let renderingOffsetEast = 0;
+    /*
+    renderingOffsets are used to render side effects of borders from other overlays,
+    e.g. when fixedRowsTop === 1, render the top border of the cell A2 (on master table) 
+    as the bottom border of the cell A1 (on the top overlay table).
+    */
+
+    let renderingOffsetEast = 0; 
     let renderingOffsetSouth = 0;
     let renderingOffsetNorth = 0;
 
-    if (wotInstance.wtTable.eastNeighbourTable && wotInstance.wtTable.eastNeighbourTable().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
+    if (wotInstance.wtTable.eastNeighborTable && wotInstance.wtTable.getTableNeighborEast().getFirstVisibleColumn() === wotInstance.wtTable.getLastVisibleColumn() + 1) {
       renderingOffsetEast = 1;
     }
-    if (wotInstance.wtTable.southNeighbourTable && wotInstance.wtTable.southNeighbourTable().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
+    if (wotInstance.wtTable.southNeighborTable && wotInstance.wtTable.getTableNeighborSouth().getFirstVisibleRow() === wotInstance.wtTable.getLastVisibleRow() + 1) {
       renderingOffsetSouth = 1;
     }
-    if (wotInstance.wtTable.northNeighbourTable && wotInstance.wtTable.northNeighbourTable().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
+    if (wotInstance.wtTable.northNeighborTable && wotInstance.wtTable.getTableNeighborNorth().getLastVisibleRow() === wotInstance.wtTable.getFirstVisibleRow() - 1) {
       renderingOffsetNorth = -1;
     }
 

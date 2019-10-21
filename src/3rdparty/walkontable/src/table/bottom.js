@@ -1,5 +1,4 @@
 import Table from '../table';
-import overlay from './mixin/overlay';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
 import calculatedColumns from './mixin/calculatedColumns';
 import { mixin } from './../../../../helpers/object';
@@ -8,12 +7,17 @@ import { mixin } from './../../../../helpers/object';
  * Subclass of `Table` that provides the helper methods relevant to BottomOverlay, implemented through mixins.
  */
 class BottomOverlayTable extends Table {
-  northNeighbourTable() {
+  /**
+   * Returns an instance of `Table` that renders the rows before the first row 
+   * in the current instance of `Table`.
+   * 
+   * @returns {Table}
+   */
+  getTableNeighborNorth() {
     return this.wot.cloneSource.wtTable;
   }
 }
 
-mixin(BottomOverlayTable, overlay);
 mixin(BottomOverlayTable, stickyRowsBottom);
 mixin(BottomOverlayTable, calculatedColumns);
 
