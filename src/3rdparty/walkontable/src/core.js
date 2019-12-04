@@ -83,6 +83,16 @@ class Walkontable {
       this.wtTable.draw(fastDraw);
     }
 
+    // start 2nd run
+    this.drawInterrupted = false;
+
+    if (!fastDraw && !this.wtTable.isVisible()) {
+      // draw interrupted because TABLE is not visible
+      this.drawInterrupted = true;
+    } else {
+      this.wtTable.draw(fastDraw);
+    }
+
     return this;
   }
 
