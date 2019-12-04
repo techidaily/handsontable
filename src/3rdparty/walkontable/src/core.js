@@ -83,6 +83,19 @@ class Walkontable {
       this.wtTable.draw(fastDraw);
     }
 
+    if (!this.cloneSource) {
+      // force 2nd draw, but only if this is a master instance
+
+      this.drawInterrupted = false;
+
+      if (!fastDraw && !this.wtTable.isVisible()) {
+        // draw interrupted because TABLE is not visible
+        this.drawInterrupted = true;
+      } else {
+        this.wtTable.draw(fastDraw);
+      }
+    }
+
     return this;
   }
 
