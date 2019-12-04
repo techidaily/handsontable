@@ -117,6 +117,7 @@ class TableView {
    */
   render() {
     this.wt.draw(!this.instance.forceFullRender);
+    this.wt.draw(!this.instance.forceFullRender);
     this.instance.forceFullRender = false;
     this.instance.renderCall = false;
   }
